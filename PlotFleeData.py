@@ -28,31 +28,34 @@ ensembleSize = 10
 
 #Read first results file header for variable names
 df = pd.read_csv('1/out.csv')
+headers = list(df)
 numCamps = int((df.shape[1]-8)/3)
 
-dfTest = []
-# loop through each ensemble job extracting sim data and assigning to df for each campsite
-for i in range(1,ensembleSize+1):
-    df = pd.read_csv(str(i)+'/out.csv')
-    dfTest.append(df.iloc[:, 2].T)
-
-#dfTest = pd.DataFrame(dfTest)
-
-# compute stats for each campsite (e.g. mean/max/min/SD/quartiles)
-
-# Plotting
-#df = pd.read_csv('out.csv')
-
-# plot all waveforms
-plt.figure(1)
-
-for i in range(ensembleSize):
-    plt.plot(dfTest[i],'k')
-plt.plot(np.mean(dfTest,axis=0),'r-',label='ensemble mean')
-plt.plot(df.iloc[:,3],'b-', label='UN Data')
-plt.legend()
-plt.xlabel('Day')
-plt.ylabel('Number of Refugees')
+for n in range(numCamps):
+    dfTest = []
+    # loop through each ensemble job extracting sim data and assigning to df for each campsite
+    for i in range(1,ensembleSize+1):
+        df = pd.read_csv(str(i)+'/out.csv')
+        dfTest.append(df.iloc[:, 3*n+2].T)
+    
+    #dfTest = pd.DataFrame(dfTest)
+    
+    # compute stats for each campsite (e.g. mean/max/min/SD/quartiles)
+    
+    # Plotting
+    #df = pd.read_csv('out.csv')
+    
+    # plot all waveforms
+    plt.figure(n+1)
+    
+    for i in range(ensembleSize):
+        plt.plot(dfTest[i],'k')
+    plt.plot(np.mean(dfTest,axis=0),'r-',label='ensemble mean')
+    plt.plot(df.iloc[:,3*n+3],'b-', label='UN Data')
+    plt.legend()
+    plt.xlabel('Day')
+    plt.ylabel('Number of Refugees')
+    plt.title(str(headers[3*n+3]))
 
 # plt.plot(df['Day'], df['Fassala-Mbera sim'],'k-')
 # plt.plot(df['Day'], df['Fassala-Mbera data'],'b-')
