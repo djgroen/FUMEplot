@@ -56,8 +56,8 @@ for n in range(numCamps):
     plt.figure(n+1)
     
     for i in range(ensembleSize):
-        plt.plot(dfTest[i],'k')
-    plt.plot(np.mean(dfTest,axis=0),'r-',label='ensemble mean')
+        plt.plot(dfTest[i],'k', alpha=0.2)
+    plt.plot(np.mean(dfTest,axis=0),'maroon',label='ensemble mean')
     plt.plot(df.iloc[:,3*n+3],'b-', label='UN Data')
     plt.legend()
     plt.xlabel('Day')
