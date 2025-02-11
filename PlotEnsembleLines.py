@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import os
+import sys
 
 
 def ReadCampHeaders(outdir, mode="flee"):
@@ -55,7 +56,7 @@ def plotFleeCamp(outdir, plot_num, sim_index, data_index):
     plt.ylabel('# of asylum seekers or unrecognized refugees')
     plt.title(str(headers[data_index]))
 
-def plotFleeCampSTDBound(outdir, plot_num, sim_index, data_index):    
+def plotFleeCampSTDBound(outdir, plot_num, sim_index, data_index):
     ensembleSize = 0
     dfTest = []
     # loop through each ensemble job extracting sim data and assigning to df for each campsite
@@ -81,16 +82,20 @@ def plotFleeCampSTDBound(outdir, plot_num, sim_index, data_index):
 
 #main plotting script
 if __name__ == "__main__":
-    outdir_flee = "sample_flee_output"
-    outdir_homecoming = "sample_homecoming_output"
+  
+    code = "flee"
+    if len(sys.argv) > 1:
+        code = sys.argv[1]
 
-    headers, sim_indices, data_indices = ReadCampHeaders(outdir_flee)
+    outdir = f"sample_{code}_output"
+
+    headers, sim_indices, data_indices = ReadCampHeaders(outdir)
 
     ensembleSize = 0
 
     for i in range(len(sim_indices)):
-        plotFleeCamp(outdir_flee, i, sim_indices[i], data_indices[i])
-        plotFleeCampSTDBound(outdir_flee, 10*i, sim_indices[i], data_indices[i])
+        plotFleeCamp(outdir, i, sim_indices[i], data_indices[i])
+        plotFleeCampSTDBound(outdir, 10*i, sim_indices[i], data_indices[i])
 
     #plot mean against quartile range for uncertainty
     plt.show()
