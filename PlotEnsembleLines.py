@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import os
 import sys
-
+from pathlib import Path
 
 def ReadCampHeaders(outdir, mode="flee"):
 
@@ -34,7 +34,7 @@ def ReadCampHeaders(outdir, mode="flee"):
     return headers, sim_indices, data_indices
 
 
-def plotFleeCamp(outdir, plot_num, sim_index, data_index):    
+def plotFleeCamp(outdir, plot_num, sim_index, data_index, save_fig=False, plot_folder=None):    
     ensembleSize = 0
     dfTest = []
     # loop through each ensemble job extracting sim data and assigning to df for each campsite
@@ -55,8 +55,11 @@ def plotFleeCamp(outdir, plot_num, sim_index, data_index):
     plt.xlabel('Day')
     plt.ylabel('# of asylum seekers or unrecognized refugees')
     plt.title(str(headers[data_index]))
+    
+    if save_fig:
+        plt.savefig(plot_folder+'/'+str(headers[data_index]).replace(" ", "")+'_Ensemble.png')
 
-def plotFleeCampSTDBound(outdir, plot_num, sim_index, data_index):
+def plotFleeCampSTDBound(outdir, plot_num, sim_index, data_index, save_fig=False, plot_folder=None):
     ensembleSize = 0
     dfTest = []
     # loop through each ensemble job extracting sim data and assigning to df for each campsite
@@ -79,8 +82,12 @@ def plotFleeCampSTDBound(outdir, plot_num, sim_index, data_index):
     plt.xlabel('Day')
     plt.ylabel('# of asylum seekers or unrecognized refugees')
     plt.title(str(headers[data_index]))
+     
+    if save_fig:
+        plt.savefig(plot_folder+'/'+str(headers[data_index]).replace(" ", "")+'_std.png')
 
-def plotFleeCampDifferences(outdir, plot_num, sim_index, data_index):    
+
+def plotFleeCampDifferences(outdir, plot_num, sim_index, data_index, save_fig=False, plot_folder=None):    
     ensembleSize = 0
     dfTest = []
     # loop through each ensemble job extracting sim data and assigning to df for each campsite
@@ -106,6 +113,9 @@ def plotFleeCampDifferences(outdir, plot_num, sim_index, data_index):
     plt.xlabel('Day')
     plt.ylabel('Difference (sim - observed)')
     plt.title(str(headers[data_index]))
+ 
+    if save_fig:
+        plt.savefig(plot_folder+'/'+str(headers[data_index]).replace(" ", "")+'_Differences.png')
 
 #main plotting script
 if __name__ == "__main__":
@@ -119,13 +129,16 @@ if __name__ == "__main__":
     headers, sim_indices, data_indices = ReadCampHeaders(outdir)
 
     ensembleSize = 0
+    
+    saving=True
+    plotfolder=code+'Plots'
+    Path(plotfolder).mkdir(parents=True, exist_ok=True)
 
 for i in range(len(sim_indices)):
-    plotFleeCamp(outdir, 3*i, sim_indices[i], data_indices[i])
-    plotFleeCampSTDBound(outdir, 3*i+1, sim_indices[i], data_indices[i])
-    plotFleeCampDifferences(outdir, 3*i+2, sim_indices[i], data_indices[i])
+    plotFleeCamp(outdir, 3*i, sim_indices[i], data_indices[i],save_fig=saving, plot_folder=plotfolder)
+    plotFleeCampSTDBound(outdir, 3*i+1, sim_indices[i], data_indices[i],save_fig=saving, plot_folder=plotfolder)
+    plotFleeCampDifferences(outdir, 3*i+2, sim_indices[i], data_indices[i],save_fig=saving, plot_folder=plotfolder)
 
-    #plot mean against quartile range for uncertainty
     plt.show()
 
 
