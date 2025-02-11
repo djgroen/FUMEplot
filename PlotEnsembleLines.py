@@ -80,10 +80,37 @@ def plotFleeCampSTDBound(outdir, plot_num, sim_index, data_index):
     plt.ylabel('# of asylum seekers or unrecognized refugees')
     plt.title(str(headers[data_index]))
 
+def plotFleeCampDifferences(outdir, plot_num, sim_index, data_index):    
+    ensembleSize = 0
+    dfTest = []
+    # loop through each ensemble job extracting sim data and assigning to df for each campsite
+    for name in os.listdir(outdir):
+        df = pd.read_csv(f"{outdir}/{name}/out.csv")
+        dfTest.append(df.iloc[:, sim_index].T)
+        ensembleSize += 1
+    
+    rmse = np.sqrt(((np.mean(dfTest,axis=0) - df.iloc[:, data_index]) ** 2).mean())
+    ard = np.abs(np.mean(dfTest,axis=0) - df.iloc[:, data_index]).mean()
+    # add text box for the statistics
+    stats = (f'RMSE = {rmse:.2f}\n'
+             f'ARD = {ard:.2f}')
+    
+    # plot all waveforms
+    plt.figure(plot_num+1)
+    
+    plt.plot(np.mean(dfTest,axis=0) - df.iloc[:, data_index],'black')
+        
+    plt.plot([],label=stats)
+    plt.legend(handlelength=0)
+    
+    plt.xlabel('Day')
+    plt.ylabel('Difference (sim - observed)')
+    plt.title(str(headers[data_index]))
+
 #main plotting script
 if __name__ == "__main__":
   
-    code = "flee"
+    code = "homecoming"
     if len(sys.argv) > 1:
         code = sys.argv[1]
 
@@ -93,9 +120,10 @@ if __name__ == "__main__":
 
     ensembleSize = 0
 
-    for i in range(len(sim_indices)):
-        plotFleeCamp(outdir, i, sim_indices[i], data_indices[i])
-        plotFleeCampSTDBound(outdir, 10*i, sim_indices[i], data_indices[i])
+for i in range(len(sim_indices)):
+    plotFleeCamp(outdir, 3*i, sim_indices[i], data_indices[i])
+    plotFleeCampSTDBound(outdir, 3*i+1, sim_indices[i], data_indices[i])
+    plotFleeCampDifferences(outdir, 3*i+2, sim_indices[i], data_indices[i])
 
     #plot mean against quartile range for uncertainty
     plt.show()
