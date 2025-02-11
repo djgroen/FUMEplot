@@ -3,10 +3,6 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import os
 
-outdir = "sample_flee_output"
-location = "Fassala-Mbera"
-sim_header = f"{location} sim"
-data_header= f"{location} data"
 
 def ReadFleeCampHeaders():
 
@@ -53,14 +49,19 @@ def plotFleeCamp(plot_num, sim_index, data_index):
     plt.ylabel('# of asylum seekers or unrecognized refugees')
     plt.title(str(headers[data_index]))
 
-headers, sim_indices, data_indices = ReadFleeCampHeaders()
 
-ensembleSize = 0
+#main plotting script
+if __name__ == "__main__":
+    outdir = "sample_flee_output"
 
-for i in range(len(sim_indices)):
-    plotFleeCamp(i, sim_indices[i], data_indices[i])
+    headers, sim_indices, data_indices = ReadFleeCampHeaders()
 
-#plot mean against quartile range for uncertainty
-plt.show()
+    ensembleSize = 0
+
+    for i in range(len(sim_indices)):
+        plotFleeCamp(i, sim_indices[i], data_indices[i])
+
+    #plot mean against quartile range for uncertainty
+    plt.show()
 
 
