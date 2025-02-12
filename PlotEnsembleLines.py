@@ -134,10 +134,10 @@ if __name__ == "__main__":
     plotfolder=code+'Plots'
     Path(plotfolder).mkdir(parents=True, exist_ok=True)
 
-for i in range(len(sim_indices)):
-    plotFleeCamp(outdir, 3*i, sim_indices[i], data_indices[i],save_fig=saving, plot_folder=plotfolder)
-    plotFleeCampSTDBound(outdir, 3*i+1, sim_indices[i], data_indices[i],save_fig=saving, plot_folder=plotfolder)
-    plotFleeCampDifferences(outdir, 3*i+2, sim_indices[i], data_indices[i],save_fig=saving, plot_folder=plotfolder)
+    for i in range(len(sim_indices)):
+        plotFleeCamp(outdir, 3*i, sim_indices[i], data_indices[i],save_fig=saving, plot_folder=plotfolder)
+        plotFleeCampSTDBound(outdir, 3*i+1, sim_indices[i], data_indices[i],save_fig=saving, plot_folder=plotfolder)
+        plotFleeCampDifferences(outdir, 3*i+2, sim_indices[i], data_indices[i],save_fig=saving, plot_folder=plotfolder)
 
     plt.show()
 
