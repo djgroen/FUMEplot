@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 import pandas as pd
 import os
 import sys
@@ -16,7 +17,10 @@ def ReadCampHeaders(outdir, mode="flee"):
     for name in os.listdir(outdir):
         df = pd.read_csv(f"{outdir}/{name}/out.csv")
         headers = list(df)
-        numCamps = int((df.shape[1]-8)/3)
+        if mode == "flee":
+            numCamps = int((df.shape[1]-8)/3)
+        if mode == "homecoming":
+            numCamps = len(headers)-1
         break
 
     sim_indices = []
@@ -34,7 +38,7 @@ def ReadCampHeaders(outdir, mode="flee"):
     return headers, sim_indices, data_indices
 
 
-def plotFleeCamp(outdir, plot_num, sim_index, data_index, save_fig=False, plot_folder=None):    
+def plotCamp(outdir, plot_num, sim_index, data_index, save_fig=False, plot_folder=None):    
     ensembleSize = 0
     dfTest = []
     # loop through each ensemble job extracting sim data and assigning to df for each campsite
@@ -54,12 +58,12 @@ def plotFleeCamp(outdir, plot_num, sim_index, data_index, save_fig=False, plot_f
     plt.legend()
     plt.xlabel('Day')
     plt.ylabel('# of asylum seekers or unrecognized refugees')
-    plt.title(str(headers[data_index]))
+    plt.title(str(headers[sim_index]))
     
     if save_fig:
-        plt.savefig(plot_folder+'/'+str(headers[data_index]).replace(" ", "")+'_Ensemble.png')
+        plt.savefig(plot_folder+'/'+str(headers[sim_index]).replace(" ", "")+'_Ensemble.png')
 
-def plotFleeCampSTDBound(outdir, plot_num, sim_index, data_index, save_fig=False, plot_folder=None):
+def plotCampSTDBound(outdir, plot_num, sim_index, data_index, save_fig=False, plot_folder=None):
     ensembleSize = 0
     dfTest = []
     # loop through each ensemble job extracting sim data and assigning to df for each campsite
@@ -81,13 +85,13 @@ def plotFleeCampSTDBound(outdir, plot_num, sim_index, data_index, save_fig=False
     plt.legend()
     plt.xlabel('Day')
     plt.ylabel('# of asylum seekers or unrecognized refugees')
-    plt.title(str(headers[data_index]))
+    plt.title(str(headers[sim_index]))
      
     if save_fig:
-        plt.savefig(plot_folder+'/'+str(headers[data_index]).replace(" ", "")+'_std.png')
+        plt.savefig(plot_folder+'/'+str(headers[sim_index]).replace(" ", "")+'_std.png')
 
 
-def plotFleeCampDifferences(outdir, plot_num, sim_index, data_index, save_fig=False, plot_folder=None):    
+def plotCampDifferences(outdir, plot_num, sim_index, data_index, save_fig=False, plot_folder=None):    
     ensembleSize = 0
     dfTest = []
     # loop through each ensemble job extracting sim data and assigning to df for each campsite
@@ -112,21 +116,69 @@ def plotFleeCampDifferences(outdir, plot_num, sim_index, data_index, save_fig=Fa
     
     plt.xlabel('Day')
     plt.ylabel('Difference (sim - observed)')
-    plt.title(str(headers[data_index]))
+    plt.title(str(headers[sim_index]))
  
     if save_fig:
         plt.savefig(plot_folder+'/'+str(headers[data_index]).replace(" ", "")+'_Differences.png')
 
+def animateCampHistogram(outdir, plot_num, sim_index, data_index, save_fig=False, plot_folder=None):    
+    ensembleSize = 0
+    maxPop = 0
+    dfTest = []
+    # loop through each ensemble job extracting sim data and assigning to df for each campsite
+    for name in os.listdir(outdir):
+        df = pd.read_csv(f"{outdir}/{name}/out.csv")
+        dfTest.append(df.iloc[:, sim_index].T)
+        if data_index > 0:
+            if maxPop < max(max(df.iloc[:, sim_index]),max(df.iloc[:, data_index])):
+                maxPop = max(max(df.iloc[:, sim_index]),max(df.iloc[:, data_index]))
+        else:
+            if maxPop < max(df.iloc[:, sim_index]):
+                maxPop = max(df.iloc[:, sim_index])
+        ensembleSize += 1
+    
+    def updatehist(i):
+        ax.cla()
+        hist = ax.hist([item[i] for item in dfTest], bins=10, color='c', edgecolor='k', alpha=0.65, label='Ensemble data')
+        if data_index > 0:
+            data = ax.axvline(df.iloc[i, data_index], color='k', linestyle='dashed', linewidth=1, label='UN data')
+        ax.set_title(str(headers[sim_index] + ' - Day '+ str(i)))
+        ax.set(xlim=[0, 1.1*maxPop], ylim=[0, 10], xlabel='# Refugees', ylabel='Occurances')
+        #ax.set(ylim=[0, 10], xlabel='# Refugees', ylabel='Occurances')
+        ax.legend()
+        if data_index > 0:
+            return (hist, data)
+        else:
+            return (hist)
+        
+    #fig = plt.figure(plot_num+1)
+    fig, ax = plt.subplots()
+    ax.hist([item[0] for item in dfTest], bins=10, color='c', edgecolor='k', alpha=0.65, label='Ensemble data')
+    if data_index > 0:
+        ax.axvline(df.iloc[0, data_index], color='k', linestyle='dashed', linewidth=1, label='UN data')
+    ax.set_title(str(headers[sim_index] + ' - Day '+ str(0)))
+
+    # set 
+    ax.set(xlim=[0, 1.1*maxPop], ylim=[0, 10], xlabel='# Refugees', ylabel='Occurances')
+    ax.legend()
+    
+    ani = animation.FuncAnimation(fig, updatehist, len(dfTest[0]))
+        
+    if save_fig:
+       ani.save(filename=plot_folder+'/'+str(headers[sim_index]).replace(" ", "")+'_Histogram.gif', writer="pillow")
+
+
+
 #main plotting script
 if __name__ == "__main__":
   
-    code = "homecoming"
+    code = "homecoming" #flee or homecoming
     if len(sys.argv) > 1:
         code = sys.argv[1]
 
     outdir = f"sample_{code}_output"
 
-    headers, sim_indices, data_indices = ReadCampHeaders(outdir)
+    headers, sim_indices, data_indices = ReadCampHeaders(outdir, mode=code)
 
     ensembleSize = 0
     
@@ -135,9 +187,12 @@ if __name__ == "__main__":
     Path(plotfolder).mkdir(parents=True, exist_ok=True)
 
     for i in range(len(sim_indices)):
-        plotFleeCamp(outdir, 3*i, sim_indices[i], data_indices[i],save_fig=saving, plot_folder=plotfolder)
-        plotFleeCampSTDBound(outdir, 3*i+1, sim_indices[i], data_indices[i],save_fig=saving, plot_folder=plotfolder)
-        plotFleeCampDifferences(outdir, 3*i+2, sim_indices[i], data_indices[i],save_fig=saving, plot_folder=plotfolder)
+        plotCamp(outdir, 4*i, sim_indices[i], data_indices[i],save_fig=saving, plot_folder=plotfolder)
+        plotCampSTDBound(outdir, 4*i+1, sim_indices[i], data_indices[i],save_fig=saving, plot_folder=plotfolder)
+        animateCampHistogram(outdir, 4*i+3, sim_indices[i], data_indices[i],save_fig=saving, plot_folder=plotfolder)
+
+        if data_indices[i]>0:
+            plotCampDifferences(outdir, 4*i+2, sim_indices[i], data_indices[i],save_fig=saving, plot_folder=plotfolder)
 
     plt.show()
 
