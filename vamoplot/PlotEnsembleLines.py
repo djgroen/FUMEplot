@@ -9,7 +9,7 @@ from pathlib import Path
 def ReadCampHeaders(outdir, mode="flee"):
 
     headers = []
-    numCamps = 0
+    numLocs = 0
     camp_names = []
     camp_indices = []
 
@@ -18,15 +18,15 @@ def ReadCampHeaders(outdir, mode="flee"):
         df = pd.read_csv(f"{outdir}/{name}/out.csv")
         headers = list(df)
         if mode == "flee":
-            numCamps = int((df.shape[1]-8)/3)
+            numLocs = int((df.shape[1]-8)/3)
         if mode == "homecoming":
-            numCamps = len(headers)-1
+            numLocs = len(headers)-1
         break
 
     sim_indices = []
     data_indices = []
 
-    for i in range(numCamps):
+    for i in range(numLocs):
         if mode == "flee":
             sim_indices.append(3*i+2)
             data_indices.append(3*i+3)
@@ -176,7 +176,7 @@ if __name__ == "__main__":
     if len(sys.argv) > 1:
         code = sys.argv[1]
 
-    outdir = f"sample_{code}_output"
+    outdir = f"../sample_{code}_output"
 
     headers, sim_indices, data_indices = ReadCampHeaders(outdir, mode=code)
 
