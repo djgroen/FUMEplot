@@ -6,39 +6,7 @@ import os
 import sys
 from pathlib import Path
 import matplotlib.patches as mpatches
-
-def ReadCampHeaders(outdir, mode="flee"):
-
-    headers = []
-    numLocs = 0
-    loc_names = []
-
-    #Read first results file header for variable names
-    for name in os.listdir(outdir):
-        df = pd.read_csv(f"{outdir}/{name}/out.csv")
-        headers = list(df)
-        if mode == "flee":
-            numLocs = int((df.shape[1]-8)/3)
-        if mode == "homecoming":
-            numLocs = len(headers)-1
-            loc_names = headers[1:]
-        break
-
-    sim_indices = []
-    data_indices = []
-
-    for i in range(numLocs):
-        if mode == "flee":
-            sim_indices.append(3*i+2)
-            data_indices.append(3*i+3)
-            loc_names.append(headers[3*i+2].replace(' sim',''))
-        if mode == "homecoming":
-            sim_indices.append(i+1)
-            data_indices.append(-1) #indicates no data.
-
-
-    return headers, sim_indices, data_indices, loc_names
-
+import ReadHeaders
 
 def plotCamp(outdir, plot_num, sim_index, data_index, save_fig=False, plot_folder=None):    
     ensembleSize = 0
@@ -257,7 +225,7 @@ if __name__ == "__main__":
 
     outdir = f"../sample_{code}_output"
 
-    headers, sim_indices, data_indices, camp_names = ReadCampHeaders(outdir, mode=code)
+    headers, sim_indices, data_indices, camp_names = ReadHeaders.ReadHeaders(outdir, mode=code)
 
     ensembleSize = 0
     
@@ -268,24 +236,24 @@ if __name__ == "__main__":
     fi = 0 #fig number
 
     for i in range(len(sim_indices)):
-        if plot_type == "camp_lines" or "all":
+        if plot_type == "camp_lines" or plot_type == "all":
             plotCamp(outdir, fi, sim_indices[i], data_indices[i],save_fig=saving, plot_folder=plotfolder)
             fi += 1
-        if plot_type == "camp_stdev" or "all":
+        if plot_type == "camp_stdev" or plot_type == "all":
             plotCampSTDBound(outdir, fi, sim_indices[i], data_indices[i],save_fig=saving, plot_folder=plotfolder)
             fi += 1
        
         if data_indices[i]>0:
-            if plot_type == "camp_diff" or "all":
+            if plot_type == "camp_diff" or plot_type == "all":
                 plotCampDifferences(outdir, fi, sim_indices[i], data_indices[i],save_fig=saving, plot_folder=plotfolder)
                 fi += 1
 
     for i in range(len(sim_indices)): 
-        if plot_type == "camp_hist_gif" or "all":
+        if plot_type == "camp_hist_gif" or plot_type == "all":
             animateCampHistogram(outdir, fi, sim_indices[i], data_indices[i],save_fig=saving, plot_folder=plotfolder)
             fi += 1
 
-        if plot_type == "camp_violin_gif" or "all":
+        if plot_type == "camp_violin_gif" or plot_type == "all":
             animateCampViolins(outdir, 4*len(sim_indices), sim_indices, data_indices, camp_names, save_fig=True, plot_folder=plotfolder)
 
     plt.show()
