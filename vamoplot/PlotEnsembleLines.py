@@ -8,7 +8,7 @@ from pathlib import Path
 import matplotlib.patches as mpatches
 import ReadHeaders
 
-def plotCamp(outdir, plot_num, sim_index, data_index, save_fig=False, plot_folder=None):    
+def plotCamp(outdir, plot_num, sim_index, data_index, y_label, save_fig=False, plot_folder=None):    
     ensembleSize = 0
     dfTest = []
     # loop through each ensemble job extracting sim data and assigning to df for each campsite
@@ -27,13 +27,13 @@ def plotCamp(outdir, plot_num, sim_index, data_index, save_fig=False, plot_folde
         plt.plot(df.iloc[:, data_index],'b-', label='UN Data')
     plt.legend()
     plt.xlabel('Day')
-    plt.ylabel('# of asylum seekers or unrecognized refugees')
+    plt.ylabel(y_label)
     plt.title(str(headers[sim_index]))
     
     if save_fig:
         plt.savefig(plot_folder+'/'+str(headers[sim_index]).replace(" ", "")+'_Ensemble.png')
 
-def plotCampSTDBound(outdir, plot_num, sim_index, data_index, save_fig=False, plot_folder=None):
+def plotCampSTDBound(outdir, plot_num, sim_index, data_index, y_label, save_fig=False, plot_folder=None):
     ensembleSize = 0
     dfTest = []
     # loop through each ensemble job extracting sim data and assigning to df for each campsite
@@ -54,7 +54,7 @@ def plotCampSTDBound(outdir, plot_num, sim_index, data_index, save_fig=False, pl
         plt.plot(df.iloc[:, data_index],'b-', label='UN Data')
     plt.legend()
     plt.xlabel('Day')
-    plt.ylabel('# of asylum seekers or unrecognized refugees')
+    plt.ylabel(y_label)
     plt.title(str(headers[sim_index]))
      
     if save_fig:
@@ -91,7 +91,7 @@ def plotCampDifferences(outdir, plot_num, sim_index, data_index, save_fig=False,
     if save_fig:
         plt.savefig(plot_folder+'/'+str(headers[data_index]).replace(" ", "")+'_Differences.png')
 
-def animateCampHistogram(outdir, plot_num, sim_index, data_index, save_fig=False, plot_folder=None):    
+def animateCampHistogram(outdir, plot_num, sim_index, data_index, x_label, save_fig=False, plot_folder=None):    
     ensembleSize = 0
     maxPop = 0
     dfTest = []
@@ -129,7 +129,7 @@ def animateCampHistogram(outdir, plot_num, sim_index, data_index, save_fig=False
     ax.set_title(str(headers[sim_index] + ' - Day '+ str(0)))
 
     # set 
-    ax.set(xlim=[0, 1.1*maxPop], ylim=[0, 10], xlabel='# Refugees', ylabel='Occurances')
+    ax.set(xlim=[0, 1.1*maxPop], ylim=[0, 10], xlabel=x_label, ylabel='Occurances')
     ax.legend()
     
     ani = animation.FuncAnimation(fig, updatehist, len(dfTest[0]))
@@ -137,7 +137,7 @@ def animateCampHistogram(outdir, plot_num, sim_index, data_index, save_fig=False
     if save_fig:
        ani.save(filename=plot_folder+'/'+str(headers[sim_index]).replace(" ", "")+'_Histogram.gif', writer="pillow")
 
-def animateCampViolins(outdir, plot_num, sim_indices, data_indices, camp_names, save_fig=False, plot_folder=None):    
+def animateCampViolins(outdir, plot_num, sim_indices, data_indices, camp_names, y_label, save_fig=False, plot_folder=None):    
     ensembleSize = 0
     maxPop = 0
     dfFull = []
@@ -173,7 +173,7 @@ def animateCampViolins(outdir, plot_num, sim_indices, data_indices, camp_names, 
             handles, labels = ax.get_legend_handles_labels()
             handles.append(mpatches.Patch(color='C0', label='Simulations')) 
             ax.legend(handles=handles)
-        ax.set_title('Camp Populations - Day '+ str(i))
+        ax.set_title(f"{y_label} - Day {i}")
         ax.set(xlabel='Campsite', ylabel='Observations')
         ax.yaxis.grid(True)
         ax.set_xticks([y+1 for y in range(len(sim_indices))])
@@ -198,7 +198,7 @@ def animateCampViolins(outdir, plot_num, sim_indices, data_indices, camp_names, 
         handles.append(mpatches.Patch(color='C1', label='Simulations')) 
         ax.legend(handles=handles)
         
-    ax.set_title('Camp Populations - Day 0')
+    ax.set_title(f"{y_label} - Day {i}")
     ax.set(xlabel='Campsite', ylabel='Observations')
     ax.yaxis.grid(True)
     ax.set_xticks([y + 1 for y in range(len(sim_indices))])
@@ -225,7 +225,7 @@ if __name__ == "__main__":
 
     outdir = f"../sample_{code}_output"
 
-    headers, sim_indices, data_indices, camp_names = ReadHeaders.ReadHeaders(outdir, mode=code)
+    headers, sim_indices, data_indices, camp_names, y_label = ReadHeaders.ReadOutHeaders(outdir, mode=code)
 
     ensembleSize = 0
     
@@ -237,24 +237,24 @@ if __name__ == "__main__":
 
     for i in range(len(sim_indices)):
         if plot_type == "camp_lines" or plot_type == "all":
-            plotCamp(outdir, fi, sim_indices[i], data_indices[i],save_fig=saving, plot_folder=plotfolder)
+            plotCamp(outdir, fi, sim_indices[i], data_indices[i], y_label, save_fig=saving, plot_folder=plotfolder)
             fi += 1
         if plot_type == "camp_stdev" or plot_type == "all":
-            plotCampSTDBound(outdir, fi, sim_indices[i], data_indices[i],save_fig=saving, plot_folder=plotfolder)
+            plotCampSTDBound(outdir, fi, sim_indices[i], data_indices[i], y_label, save_fig=saving, plot_folder=plotfolder)
             fi += 1
        
         if data_indices[i]>0:
             if plot_type == "camp_diff" or plot_type == "all":
-                plotCampDifferences(outdir, fi, sim_indices[i], data_indices[i],save_fig=saving, plot_folder=plotfolder)
+                plotCampDifferences(outdir, fi, sim_indices[i], data_indices[i], save_fig=saving, plot_folder=plotfolder)
                 fi += 1
 
     for i in range(len(sim_indices)): 
         if plot_type == "camp_hist_gif" or plot_type == "all":
-            animateCampHistogram(outdir, fi, sim_indices[i], data_indices[i],save_fig=saving, plot_folder=plotfolder)
+            animateCampHistogram(outdir, fi, sim_indices[i], data_indices[i], y_label, save_fig=saving, plot_folder=plotfolder)
             fi += 1
 
         if plot_type == "camp_violin_gif" or plot_type == "all":
-            animateCampViolins(outdir, 4*len(sim_indices), sim_indices, data_indices, camp_names, save_fig=True, plot_folder=plotfolder)
+            animateCampViolins(outdir, 4*len(sim_indices), sim_indices, data_indices, camp_names, y_label, save_fig=True, plot_folder=plotfolder)
 
     plt.show()
 
