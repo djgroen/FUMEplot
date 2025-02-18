@@ -19,5 +19,5 @@ Describes how quantities or objects are represented themselves in the output fil
 Describes how (or if) time is described in the output files.
 
 * **none**: No explicit time indication.
-* **number**: Individual time point indicated by a number.
+* **timestep**: Individual time point indicated by an integer.
 * **date**: Individual time point indicated by a date.
