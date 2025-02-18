@@ -8,10 +8,10 @@ from pathlib import Path
 import matplotlib.patches as mpatches
 import ReadHeaders
 
-def plotCamp(outdir, plot_num, sim_index, data_index, y_label, save_fig=False, plot_folder=None):    
+def plotLocation(outdir, plot_num, sim_index, data_index, y_label, save_fig=False, plot_folder=None):    
     ensembleSize = 0
     dfTest = []
-    # loop through each ensemble job extracting sim data and assigning to df for each campsite
+    # loop through each ensemble job extracting sim data and assigning to df for each location
     for name in os.listdir(outdir):
         df = pd.read_csv(f"{outdir}/{name}/out.csv")
         dfTest.append(df.iloc[:, sim_index].T)
@@ -33,10 +33,10 @@ def plotCamp(outdir, plot_num, sim_index, data_index, y_label, save_fig=False, p
     if save_fig:
         plt.savefig(plot_folder+'/'+str(headers[sim_index]).replace(" ", "")+'_Ensemble.png')
 
-def plotCampSTDBound(outdir, plot_num, sim_index, data_index, y_label, save_fig=False, plot_folder=None):
+def plotLocationSTDBound(outdir, plot_num, sim_index, data_index, y_label, save_fig=False, plot_folder=None):
     ensembleSize = 0
     dfTest = []
-    # loop through each ensemble job extracting sim data and assigning to df for each campsite
+    # loop through each ensemble job extracting sim data and assigning to df for each location
     for name in os.listdir(outdir):
         df = pd.read_csv(f"{outdir}/{name}/out.csv")
         dfTest.append(df.iloc[:, sim_index].T)
@@ -61,10 +61,10 @@ def plotCampSTDBound(outdir, plot_num, sim_index, data_index, y_label, save_fig=
         plt.savefig(plot_folder+'/'+str(headers[sim_index]).replace(" ", "")+'_std.png')
 
 
-def plotCampDifferences(outdir, plot_num, sim_index, data_index, save_fig=False, plot_folder=None):    
+def plotLocationDifferences(outdir, plot_num, sim_index, data_index, save_fig=False, plot_folder=None):    
     ensembleSize = 0
     dfTest = []
-    # loop through each ensemble job extracting sim data and assigning to df for each campsite
+    # loop through each ensemble job extracting sim data and assigning to df for each location
     for name in os.listdir(outdir):
         df = pd.read_csv(f"{outdir}/{name}/out.csv")
         dfTest.append(df.iloc[:, sim_index].T)
@@ -91,11 +91,11 @@ def plotCampDifferences(outdir, plot_num, sim_index, data_index, save_fig=False,
     if save_fig:
         plt.savefig(plot_folder+'/'+str(headers[data_index]).replace(" ", "")+'_Differences.png')
 
-def animateCampHistogram(outdir, plot_num, sim_index, data_index, x_label, save_fig=False, plot_folder=None):    
+def animateLocationHistogram(outdir, plot_num, sim_index, data_index, x_label, save_fig=False, plot_folder=None):    
     ensembleSize = 0
     maxPop = 0
     dfTest = []
-    # loop through each ensemble job extracting sim data and assigning to df for each campsite
+    # loop through each ensemble job extracting sim data and assigning to df for each location
     for name in os.listdir(outdir):
         df = pd.read_csv(f"{outdir}/{name}/out.csv")
         dfTest.append(df.iloc[:, sim_index].T)
@@ -137,11 +137,11 @@ def animateCampHistogram(outdir, plot_num, sim_index, data_index, x_label, save_
     if save_fig:
        ani.save(filename=plot_folder+'/'+str(headers[sim_index]).replace(" ", "")+'_Histogram.gif', writer="pillow")
 
-def animateCampViolins(outdir, plot_num, sim_indices, data_indices, camp_names, y_label, save_fig=False, plot_folder=None):    
+def animateLocationViolins(outdir, plot_num, sim_indices, data_indices, loc_names, y_label, save_fig=False, plot_folder=None):    
     ensembleSize = 0
     maxPop = 0
     dfFull = []
-    # loop through each ensemble job extracting sim data and assigning to df for each campsite
+    # loop through each ensemble job extracting sim data and assigning to df for each location
     for name in os.listdir(outdir):
         dfTest=[]
         df = pd.read_csv(f"{outdir}/{name}/out.csv")
@@ -162,11 +162,11 @@ def animateCampViolins(outdir, plot_num, sim_indices, data_indices, camp_names, 
     
     def updateviolin(i):
         ax.cla()
-        campData=[]
+        locData=[]
         for j in range(ensembleSize):
-            campData.append([item[i] for item in dfFull[j]])
-        campData = [list(k) for k in zip(*campData)]
-        hist = ax.violinplot(campData, showmeans=False, showmedians=True)
+            locData.append([item[i] for item in dfFull[j]])
+        locData = [list(k) for k in zip(*locData)]
+        hist = ax.violinplot(locData, showmeans=False, showmedians=True)
         if dataAvailable:
             ax.scatter([y + 1 for y in range(len(sim_indices))], dataValues.iloc[i].values, color='r', label='UN data')
             # where some data has already been plotted to ax
@@ -174,10 +174,10 @@ def animateCampViolins(outdir, plot_num, sim_indices, data_indices, camp_names, 
             handles.append(mpatches.Patch(color='C0', label='Simulations')) 
             ax.legend(handles=handles)
         ax.set_title(f"{y_label} - Day {i}")
-        ax.set(xlabel='Campsite', ylabel='Observations')
+        ax.set(xlabel='Locationsite', ylabel='Observations')
         ax.yaxis.grid(True)
         ax.set_xticks([y+1 for y in range(len(sim_indices))])
-        ax.set_xticklabels(camp_names) #as old version of matplotlib
+        ax.set_xticklabels(loc_names) #as old version of matplotlib
         ax.tick_params(axis='x', rotation=90)
         plt.tight_layout()
 
@@ -185,11 +185,11 @@ def animateCampViolins(outdir, plot_num, sim_indices, data_indices, camp_names, 
         
     #fig = plt.figure(plot_num+1)
     fig, ax = plt.subplots()
-    campData=[]
+    locData=[]
     for j in range(ensembleSize):
-        campData.append([item[0] for item in dfFull[j]])
-    campData = [list(i) for i in zip(*campData)]
-    ax.violinplot(campData, showmeans=False, showmedians=True)
+        locData.append([item[0] for item in dfFull[j]])
+    locData = [list(i) for i in zip(*locData)]
+    ax.violinplot(locData, showmeans=False, showmedians=True)
     if dataAvailable:
         ax.scatter([y + 1 for y in range(len(sim_indices))], dataValues.iloc[0].values, color='r', label='UN data')
         
@@ -199,10 +199,10 @@ def animateCampViolins(outdir, plot_num, sim_indices, data_indices, camp_names, 
         ax.legend(handles=handles)
         
     ax.set_title(f"{y_label} - Day {i}")
-    ax.set(xlabel='Campsite', ylabel='Observations')
+    ax.set(xlabel='Location', ylabel='Observations')
     ax.yaxis.grid(True)
     ax.set_xticks([y + 1 for y in range(len(sim_indices))])
-    ax.set_xticklabels(camp_names)
+    ax.set_xticklabels(loc_names)
     ax.tick_params(axis='x', rotation=90)
     plt.tight_layout()
     ani = animation.FuncAnimation(fig, updateviolin, len(dfFull[0][0]))
@@ -225,7 +225,7 @@ if __name__ == "__main__":
 
     outdir = f"../sample_{code}_output"
 
-    headers, sim_indices, data_indices, camp_names, y_label = ReadHeaders.ReadOutHeaders(outdir, mode=code)
+    headers, sim_indices, data_indices, loc_names, y_label = ReadHeaders.ReadOutHeaders(outdir, mode=code)
 
     ensembleSize = 0
     
@@ -236,25 +236,25 @@ if __name__ == "__main__":
     fi = 0 #fig number
 
     for i in range(len(sim_indices)):
-        if plot_type == "camp_lines" or plot_type == "all":
-            plotCamp(outdir, fi, sim_indices[i], data_indices[i], y_label, save_fig=saving, plot_folder=plotfolder)
+        if plot_type == "loc_lines" or plot_type == "all":
+            plotLocation(outdir, fi, sim_indices[i], data_indices[i], y_label, save_fig=saving, plot_folder=plotfolder)
             fi += 1
-        if plot_type == "camp_stdev" or plot_type == "all":
-            plotCampSTDBound(outdir, fi, sim_indices[i], data_indices[i], y_label, save_fig=saving, plot_folder=plotfolder)
+        if plot_type == "loc_stdev" or plot_type == "all":
+            plotLocationSTDBound(outdir, fi, sim_indices[i], data_indices[i], y_label, save_fig=saving, plot_folder=plotfolder)
             fi += 1
        
         if data_indices[i]>0:
-            if plot_type == "camp_diff" or plot_type == "all":
-                plotCampDifferences(outdir, fi, sim_indices[i], data_indices[i], save_fig=saving, plot_folder=plotfolder)
+            if plot_type == "loc_diff" or plot_type == "all":
+                plotLocationDifferences(outdir, fi, sim_indices[i], data_indices[i], save_fig=saving, plot_folder=plotfolder)
                 fi += 1
 
     for i in range(len(sim_indices)): 
-        if plot_type == "camp_hist_gif" or plot_type == "all":
-            animateCampHistogram(outdir, fi, sim_indices[i], data_indices[i], y_label, save_fig=saving, plot_folder=plotfolder)
+        if plot_type == "loc_hist_gif" or plot_type == "all":
+            animateLocationHistogram(outdir, fi, sim_indices[i], data_indices[i], y_label, save_fig=saving, plot_folder=plotfolder)
             fi += 1
 
-        if plot_type == "camp_violin_gif" or plot_type == "all":
-            animateCampViolins(outdir, 4*len(sim_indices), sim_indices, data_indices, camp_names, y_label, save_fig=True, plot_folder=plotfolder)
+        if plot_type == "loc_violin_gif" or plot_type == "all":
+            animateLocationViolins(outdir, 4*len(sim_indices), sim_indices, data_indices, loc_names, y_label, save_fig=True, plot_folder=plotfolder)
 
     plt.show()
 
