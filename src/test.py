@@ -13,7 +13,7 @@ def test():
     #print(data.index)
     # print(data)
 
-    plot_camps_uq(data, {"n_sim": n_runs},"sample_output")
+    plot_camps_uq(data, {"n_sim": n_runs, "pdf_output": True}, "sample_output")
 
 if __name__ == "__main__":
 
