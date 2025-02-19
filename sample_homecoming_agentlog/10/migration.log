@@ -1,257 +1,268 @@
-time,source,destination,E/D-age-gender-origin,legal_status-employment-property_in_ukraine-sizeE-sizeD
-1, poland, zakarpatska, E-9-m-zakarpatska, tp-True-2-1-3
-1, poland, zakarpatska, E-4-f-zakarpatska, tp-True-2-1-3
-1, poland, zakarpatska, E-4-f-zakarpatska, tp-True-2-1-3
-1, poland, zakarpatska, E-41-m-zakarpatska, tp-True-2-1-3
-1, czechia, poltavska, E-36-f-poltavska, tp-True-0-3-0
-1, czechia, poltavska, E-59-f-poltavska, tp-True-0-3-0
-1, czechia, poltavska, E-16-m-poltavska, tp-True-0-3-0
-1, germany, mykolaivska, E-22-m-mykolaivska, tp-True-1-2-1
-1, germany, mykolaivska, E-38-f-mykolaivska, tp-True-1-2-1
-1, germany, mykolaivska, E-12-m-mykolaivska, tp-True-1-2-1
-1, germany, mykolaivska, E-26-f-mykolaivska, tp-True-0-2-0
-1, germany, mykolaivska, E-12-m-mykolaivska, tp-True-0-2-0
-1, italy, kyiv, E-20-m-kyiv, tp-False-5-1-4
-1, italy, kyiv, E-56-f-kyiv, tp-False-5-1-4
-1, italy, kyiv, E-86-m-kyiv, tp-False-5-1-4
-1, italy, kyiv, E-72-m-kyiv, tp-False-5-1-4
-1, italy, kyiv, E-54-f-kyiv, tp-False-5-1-4
-1, portugal, donetska, E-4-f-donetska, tp-True-3-2-1
-1, portugal, donetska, E-9-m-donetska, tp-True-3-2-1
-1, portugal, donetska, E-62-f-donetska, tp-True-3-2-1
-2, czechia, poltavska, E-28-m-poltavska, tp-True-0-2-3
-2, czechia, poltavska, E-24-m-poltavska, tp-True-0-2-3
-2, czechia, poltavska, E-30-m-poltavska, tp-True-0-2-3
-2, czechia, poltavska, E-20-m-poltavska, tp-True-0-2-3
-2, czechia, poltavska, E-65-m-poltavska, tp-True-0-2-3
-2, lithuania, donetska, E-26-f-donetska, tp-True-5-2-1
-2, lithuania, donetska, E-42-f-donetska, tp-True-5-2-1
-2, lithuania, donetska, E-62-f-donetska, tp-True-5-2-1
-2, germany, mykolaivska, E-35-f-mykolaivska, tp-True-0-3-0
-2, germany, mykolaivska, E-79-f-mykolaivska, tp-True-0-3-0
-2, germany, mykolaivska, E-24-f-mykolaivska, tp-True-0-3-0
-2, germany, mykolaivska, E-60-f-mykolaivska, tp-True-5-1-2
-2, germany, mykolaivska, E-13-m-mykolaivska, tp-True-5-1-2
-2, germany, mykolaivska, E-64-m-mykolaivska, tp-True-5-1-2
-2, spain, sumska, E-55-f-sumska, tp-True-5-3-1
-2, spain, sumska, E-58-m-sumska, tp-True-5-3-1
-2, spain, sumska, E-31-f-sumska, tp-True-5-3-1
-2, spain, sumska, E-55-f-sumska, tp-True-5-3-1
-3, poland, zakarpatska, E-8-f-zakarpatska, tp-True-5-1-1
-3, poland, zakarpatska, E-7-f-zakarpatska, tp-True-5-1-1
-3, germany, mykolaivska, E-29-f-mykolaivska, tp-True-3-3-2
-3, germany, mykolaivska, E-70-m-mykolaivska, tp-True-3-3-2
-3, germany, mykolaivska, E-23-m-mykolaivska, tp-True-3-3-2
-3, germany, mykolaivska, E-22-m-mykolaivska, tp-True-3-3-2
-3, germany, mykolaivska, E-15-m-mykolaivska, tp-True-3-3-2
-3, italy, kyiv, E-10-m-kyiv, tp-True-3-1-2
-3, italy, kyiv, E-44-f-kyiv, tp-True-3-1-2
-3, italy, kyiv, E-8-m-kyiv, tp-True-3-1-2
-4, poland, zakarpatska, E-17-f-zakarpatska, tp-True-5-1-3
-4, poland, zakarpatska, E-25-m-zakarpatska, tp-True-5-1-3
-4, poland, zakarpatska, E-32-f-zakarpatska, tp-True-5-1-3
-4, poland, zakarpatska, E-13-f-zakarpatska, tp-True-5-1-3
-4, czechia, poltavska, E-81-f-poltavska, tp-True-3-3-0
-4, czechia, poltavska, E-35-f-poltavska, tp-True-3-3-0
-4, czechia, poltavska, E-18-f-poltavska, tp-True-3-3-0
-4, italy, kyiv, E-45-m-kyiv, tp-True-5-2-1
-4, italy, kyiv, E-43-f-kyiv, tp-True-5-2-1
-4, italy, kyiv, E-3-m-kyiv, tp-True-5-2-1
-4, portugal, donetska, E-41-f-donetska, tp-True-5-2-1
-4, portugal, donetska, E-33-f-donetska, tp-True-5-2-1
-4, portugal, donetska, E-44-m-donetska, tp-True-5-2-1
-5, poland, zakarpatska, E-7-m-zakarpatska, tp-True-5-1-1
-5, poland, zakarpatska, E-14-f-zakarpatska, tp-True-5-1-1
-5, republic_of_moldova, zaporizka, E-27-f-zaporizka, tp-True-0-3-0
-5, republic_of_moldova, zaporizka, E-76-m-zaporizka, tp-True-0-3-0
-5, republic_of_moldova, zaporizka, E-30-f-zaporizka, tp-True-0-3-0
-5, denmark, vinnytska, E-20-m-vinnytska, tp-True-5-1-3
-5, denmark, vinnytska, E-13-m-vinnytska, tp-True-5-1-3
-5, denmark, vinnytska, E-36-f-vinnytska, tp-True-5-1-3
-5, denmark, vinnytska, E-8-m-vinnytska, tp-True-5-1-3
-6, hungary, dnipropetrovska, E-90-m-dnipropetrovska, tp-True-5-2-1
-6, hungary, dnipropetrovska, E-53-f-dnipropetrovska, tp-True-5-2-1
-6, hungary, dnipropetrovska, E-72-m-dnipropetrovska, tp-True-5-2-1
-6, czechia, poltavska, E-61-f-poltavska, tp-True-5-3-0
-6, czechia, poltavska, E-35-m-poltavska, tp-True-5-3-0
-6, czechia, poltavska, E-14-f-poltavska, tp-True-5-3-0
-7, poland, zakarpatska, E-12-m-zakarpatska, tp-True-2-1-0
-7, lithuania, donetska, E-21-f-donetska, tp-True-5-2-0
-7, lithuania, donetska, E-48-f-donetska, tp-True-5-2-0
-7, ireland, kirovohradska, E-41-f-kirovohradska, tp-True-5-1-1
-7, ireland, kirovohradska, E-58-f-kirovohradska, tp-True-5-1-1
-8, poland, zakarpatska, E-30-f-zakarpatska, tp-True-3-2-1
-8, poland, zakarpatska, E-44-m-zakarpatska, tp-True-3-2-1
-8, poland, zakarpatska, E-6-m-zakarpatska, tp-True-3-2-1
-8, germany, mykolaivska, E-50-m-mykolaivska, tp-True-5-2-1
-8, germany, mykolaivska, E-66-m-mykolaivska, tp-True-5-2-1
-8, germany, mykolaivska, E-57-f-mykolaivska, tp-True-5-2-1
-9, slovakia, kyiv, E-6-m-kyiv, tp-True-5-3-2
-9, slovakia, kyiv, E-33-f-kyiv, tp-True-5-3-2
-9, slovakia, kyiv, E-31-f-kyiv, tp-True-5-3-2
-9, slovakia, kyiv, E-19-m-kyiv, tp-True-5-3-2
-9, slovakia, kyiv, E-46-f-kyiv, tp-True-5-3-2
-9, czechia, poltavska, E-13-m-poltavska, tp-True-5-2-0
-9, czechia, poltavska, E-59-f-poltavska, tp-True-5-2-0
-9, germany, mykolaivska, E-0-m-mykolaivska, tp-True-5-1-3
-9, germany, mykolaivska, E-8-f-mykolaivska, tp-True-5-1-3
-9, germany, mykolaivska, E-6-f-mykolaivska, tp-True-5-1-3
-9, germany, mykolaivska, E-34-f-mykolaivska, tp-True-5-1-3
-10, poland, zakarpatska, E-1-m-zakarpatska, tp-True-5-3-0
-10, poland, zakarpatska, E-6-m-zakarpatska, tp-True-5-3-0
-10, poland, zakarpatska, E-9-m-zakarpatska, tp-True-5-3-0
-10, germany, mykolaivska, E-25-f-mykolaivska, tp-True-5-3-1
-10, germany, mykolaivska, E-61-f-mykolaivska, tp-True-5-3-1
-10, germany, mykolaivska, E-43-f-mykolaivska, tp-True-5-3-1
-10, germany, mykolaivska, E-80-f-mykolaivska, tp-True-5-3-1
-10, france, khmelnytska, E-18-f-khmelnytska, tp-True-5-2-0
-10, france, khmelnytska, E-56-f-khmelnytska, tp-True-5-2-0
-10, greece, kyivska, E-22-f-kyivska, tp-True-1-2-1
-10, greece, kyivska, E-56-f-kyivska, tp-True-1-2-1
-10, greece, kyivska, E-17-f-kyivska, tp-True-1-2-1
-11, germany, mykolaivska, E-2-m-mykolaivska, tp-True-5-3-0
-11, germany, mykolaivska, E-25-m-mykolaivska, tp-True-5-3-0
-11, germany, mykolaivska, E-48-f-mykolaivska, tp-True-5-3-0
-11, germany, mykolaivska, E-13-f-mykolaivska, tp-True-5-2-1
-11, germany, mykolaivska, E-13-f-mykolaivska, tp-True-5-2-1
-11, germany, mykolaivska, E-52-f-mykolaivska, tp-True-5-2-1
-11, france, khmelnytska, E-63-m-khmelnytska, tp-True-5-2-1
-11, france, khmelnytska, E-21-f-khmelnytska, tp-True-5-2-1
-11, france, khmelnytska, E-60-f-khmelnytska, tp-True-5-2-1
-12, germany, mykolaivska, E-22-f-mykolaivska, tp-True-5-2-2
-12, germany, mykolaivska, E-35-f-mykolaivska, tp-True-5-2-2
-12, germany, mykolaivska, E-17-m-mykolaivska, tp-True-5-2-2
-12, germany, mykolaivska, E-35-f-mykolaivska, tp-True-5-2-2
-13, poland, zakarpatska, E-5-f-zakarpatska, tp-True-0-1-2
-13, poland, zakarpatska, E-25-f-zakarpatska, tp-True-0-1-2
-13, poland, zakarpatska, E-3-f-zakarpatska, tp-True-0-1-2
-13, romania, odeska, E-9-m-odeska, tp-True-5-2-1
-13, romania, odeska, E-12-f-odeska, tp-True-5-2-1
-13, romania, odeska, E-11-f-odeska, tp-True-5-2-1
-13, spain, sumska, E-36-f-sumska, tp-True-5-2-0
-13, spain, sumska, E-12-f-sumska, tp-True-5-2-0
-13, italy, kyiv, E-76-f-kyiv, tp-True-5-2-1
-13, italy, kyiv, E-59-f-kyiv, tp-True-5-2-1
-13, italy, kyiv, E-18-f-kyiv, tp-True-5-2-1
-14, poland, zakarpatska, E-9-f-zakarpatska, tp-True-3-1-2
-14, poland, zakarpatska, E-33-f-zakarpatska, tp-True-3-1-2
-14, poland, zakarpatska, E-34-m-zakarpatska, tp-True-3-1-2
-14, slovakia, kyiv, E-52-f-kyiv, tp-True-5-2-0
-14, slovakia, kyiv, E-0-f-kyiv, tp-True-5-2-0
-14, czechia, poltavska, E-0-m-poltavska, tp-True-5-4-2
-14, czechia, poltavska, E-20-m-poltavska, tp-True-5-4-2
-14, czechia, poltavska, E-39-f-poltavska, tp-True-5-4-2
-14, czechia, poltavska, E-42-m-poltavska, tp-True-5-4-2
-14, czechia, poltavska, E-15-m-poltavska, tp-True-5-4-2
-14, czechia, poltavska, E-46-f-poltavska, tp-True-5-4-2
-14, germany, mykolaivska, E-57-m-mykolaivska, tp-True-5-1-3
-14, germany, mykolaivska, E-28-m-mykolaivska, tp-True-5-1-3
-14, germany, mykolaivska, E-11-f-mykolaivska, tp-True-5-1-3
-14, germany, mykolaivska, E-8-m-mykolaivska, tp-True-5-1-3
-14, germany, mykolaivska, E-51-m-mykolaivska, tp-True-5-1-3
-14, germany, mykolaivska, E-31-m-mykolaivska, tp-True-5-1-3
-14, germany, mykolaivska, E-21-f-mykolaivska, tp-True-5-1-3
-14, germany, mykolaivska, E-29-f-mykolaivska, tp-True-5-1-3
-14, sweden, ternopilska, E-43-f-ternopilska, tp-True-5-2-2
-14, sweden, ternopilska, E-62-f-ternopilska, tp-True-5-2-2
-14, sweden, ternopilska, E-38-f-ternopilska, tp-True-5-2-2
-14, sweden, ternopilska, E-42-m-ternopilska, tp-True-5-2-2
-15, germany, mykolaivska, E-67-m-mykolaivska, tp-True-2-1-2
-15, germany, mykolaivska, E-33-m-mykolaivska, tp-True-2-1-2
-15, germany, mykolaivska, E-15-m-mykolaivska, tp-True-2-1-2
-15, spain, sumska, E-3-m-sumska, tp-True-1-1-2
-15, spain, sumska, E-8-m-sumska, tp-True-1-1-2
-15, spain, sumska, E-10-m-sumska, tp-True-1-1-2
-15, netherlands, luhanska, E-0-f-luhanska, tp-True-0-2-1
-15, netherlands, luhanska, E-3-f-luhanska, tp-True-0-2-1
-15, netherlands, luhanska, E-26-m-luhanska, tp-True-0-2-1
-16, poland, zakarpatska, E-2-m-zakarpatska, tp-True-1-1-0
-16, germany, mykolaivska, E-9-m-mykolaivska, tp-True-5-2-2
-16, germany, mykolaivska, E-7-m-mykolaivska, tp-True-5-2-2
-16, germany, mykolaivska, E-86-f-mykolaivska, tp-True-5-2-2
-16, germany, mykolaivska, E-5-m-mykolaivska, tp-True-5-2-2
-16, germany, mykolaivska, E-24-f-mykolaivska, tp-True-1-1-2
-16, germany, mykolaivska, E-0-m-mykolaivska, tp-True-1-1-2
-16, germany, mykolaivska, E-44-f-mykolaivska, tp-True-1-1-2
-17, spain, sumska, E-30-f-sumska, tp-True-1-1-2
-17, spain, sumska, E-21-m-sumska, tp-True-1-1-2
-17, spain, sumska, E-9-m-sumska, tp-True-1-1-2
-18, czechia, poltavska, E-41-m-poltavska, tp-True-5-1-4
-18, czechia, poltavska, E-32-f-poltavska, tp-True-5-1-4
-18, czechia, poltavska, E-47-m-poltavska, tp-True-5-1-4
-18, czechia, poltavska, E-15-m-poltavska, tp-True-5-1-4
-18, czechia, poltavska, E-2-m-poltavska, tp-True-5-1-4
-19, hungary, dnipropetrovska, E-19-f-dnipropetrovska, tp-True-2-1-2
-19, hungary, dnipropetrovska, E-11-m-dnipropetrovska, tp-True-2-1-2
-19, hungary, dnipropetrovska, E-30-m-dnipropetrovska, tp-True-2-1-2
-20, czechia, poltavska, E-12-m-poltavska, tp-True-0-1-2
-20, czechia, poltavska, E-31-f-poltavska, tp-True-0-1-2
-20, czechia, poltavska, E-15-m-poltavska, tp-True-0-1-2
-20, netherlands, luhanska, E-63-f-luhanska, tp-True-3-3-1
-20, netherlands, luhanska, E-52-f-luhanska, tp-True-3-3-1
-20, netherlands, luhanska, E-28-f-luhanska, tp-True-3-3-1
-20, netherlands, luhanska, E-21-f-luhanska, tp-True-3-3-1
-21, cyprus, rivnenska, E-41-f-rivnenska, tp-True-5-2-0
-21, cyprus, rivnenska, E-20-f-rivnenska, tp-True-5-2-0
-22, latvia, ivano-frankivska, E-0-f-ivano-frankivska, tp-True-5-3-1
-22, latvia, ivano-frankivska, E-70-m-ivano-frankivska, tp-True-5-3-1
-22, latvia, ivano-frankivska, E-53-f-ivano-frankivska, tp-True-5-3-1
-22, latvia, ivano-frankivska, E-24-m-ivano-frankivska, tp-True-5-3-1
-22, germany, mykolaivska, E-17-f-mykolaivska, tp-True-5-1-1
-22, germany, mykolaivska, E-26-f-mykolaivska, tp-True-5-1-1
-23, poland, zakarpatska, E-52-f-zakarpatska, tp-True-3-1-3
-23, poland, zakarpatska, E-1-m-zakarpatska, tp-True-3-1-3
-23, poland, zakarpatska, E-14-m-zakarpatska, tp-True-3-1-3
-23, poland, zakarpatska, E-9-m-zakarpatska, tp-True-3-1-3
-23, netherlands, luhanska, E-46-m-luhanska, tp-True-5-2-0
-23, netherlands, luhanska, E-41-m-luhanska, tp-True-5-2-0
-24, poland, zakarpatska, E-15-f-zakarpatska, tp-True-5-1-0
-24, poland, zakarpatska, E-12-f-zakarpatska, tp-True-5-3-0
-24, poland, zakarpatska, E-58-f-zakarpatska, tp-True-5-3-0
-24, poland, zakarpatska, E-25-f-zakarpatska, tp-True-5-3-0
-24, republic_of_moldova, zaporizka, E-73-m-zaporizka, tp-True-0-1-1
-24, republic_of_moldova, zaporizka, E-22-f-zaporizka, tp-True-0-1-1
-24, bulgaria, sumska, E-4-m-sumska, tp-True-2-2-4
-24, bulgaria, sumska, E-43-f-sumska, tp-True-2-2-4
-24, bulgaria, sumska, E-3-m-sumska, tp-True-2-2-4
-24, bulgaria, sumska, E-19-f-sumska, tp-True-2-2-4
-24, bulgaria, sumska, E-9-f-sumska, tp-True-2-2-4
-24, bulgaria, sumska, E-17-m-sumska, tp-True-2-2-4
-25, czechia, poltavska, E-8-m-poltavska, tp-True-0-2-0
-25, czechia, poltavska, E-51-f-poltavska, tp-True-0-2-0
-25, sweden, ternopilska, E-45-m-ternopilska, tp-True-0-1-2
-25, sweden, ternopilska, E-25-m-ternopilska, tp-True-0-1-2
-25, sweden, ternopilska, E-51-f-ternopilska, tp-True-0-1-2
-26, poland, zakarpatska, E-49-f-zakarpatska, tp-True-5-2-0
-26, poland, zakarpatska, E-88-f-zakarpatska, tp-True-5-2-0
-28, germany, mykolaivska, E-52-f-mykolaivska, tp-True-5-1-2
-28, germany, mykolaivska, E-30-m-mykolaivska, tp-True-5-1-2
-28, germany, mykolaivska, E-1-f-mykolaivska, tp-True-5-1-2
-28, finland, ivano-frankivska, E-54-f-ivano-frankivska, tp-True-3-1-1
-28, finland, ivano-frankivska, E-40-f-ivano-frankivska, tp-True-3-1-1
-31, belgium, sumska, E-20-f-sumska, tp-True-3-3-1
-31, belgium, sumska, E-10-f-sumska, tp-True-3-3-1
-31, belgium, sumska, E-52-m-sumska, tp-True-3-3-1
-31, belgium, sumska, E-10-m-sumska, tp-True-3-3-1
-34, poland, zakarpatska, E-16-f-zakarpatska, tp-True-5-1-2
-34, poland, zakarpatska, E-64-f-zakarpatska, tp-True-5-1-2
-34, poland, zakarpatska, E-39-m-zakarpatska, tp-True-5-1-2
-34, spain, sumska, E-49-f-sumska, tp-True-5-1-1
-34, spain, sumska, E-86-f-sumska, tp-True-5-1-1
-36, poland, zakarpatska, E-4-f-zakarpatska, tp-True-5-1-1
-36, poland, zakarpatska, E-51-f-zakarpatska, tp-True-5-1-1
-38, czechia, poltavska, E-11-f-poltavska, tp-True-5-3-0
-38, czechia, poltavska, E-53-f-poltavska, tp-True-5-3-0
-38, czechia, poltavska, E-52-f-poltavska, tp-True-5-3-0
-39, poland, zakarpatska, E-17-m-zakarpatska, tp-True-5-3-0
-39, poland, zakarpatska, E-10-f-zakarpatska, tp-True-5-3-0
-39, poland, zakarpatska, E-7-m-zakarpatska, tp-True-5-3-0
-40, romania, odeska, E-26-m-odeska, tp-True-3-2-0
-40, romania, odeska, E-38-f-odeska, tp-True-3-2-0
-40, estonia, zakarpatska, E-50-f-zakarpatska, tp-True-0-2-0
-40, estonia, zakarpatska, E-55-f-zakarpatska, tp-True-0-2-0
-41, slovakia, kyiv, E-31-f-kyiv, tp-True-5-2-0
-41, slovakia, kyiv, E-24-f-kyiv, tp-True-5-2-0
-43, finland, ivano-frankivska, E-17-f-ivano-frankivska, tp-True-5-1-2
-43, finland, ivano-frankivska, E-44-m-ivano-frankivska, tp-True-5-1-2
-43, finland, ivano-frankivska, E-3-m-ivano-frankivska, tp-True-5-1-2
+time,source,destination,E/D,age,gender,origin,legal_status,,employment,property_in_ukraine,sizeE,sizeD
+1,poland,autonomous_republic_of_crimea,E,35,f,autonomous_republic_of_crimea,tp,True,3,3,0
+1,poland,autonomous_republic_of_crimea,E,0,f,autonomous_republic_of_crimea,tp,True,3,3,0
+1,poland,autonomous_republic_of_crimea,E,30,f,autonomous_republic_of_crimea,tp,True,3,3,0
+1,poland,autonomous_republic_of_crimea,E,13,m,autonomous_republic_of_crimea,tp,True,3,3,1
+1,poland,autonomous_republic_of_crimea,E,38,f,autonomous_republic_of_crimea,tp,True,3,3,1
+1,poland,autonomous_republic_of_crimea,E,23,f,autonomous_republic_of_crimea,tp,True,3,3,1
+1,poland,autonomous_republic_of_crimea,D,6,m,autonomous_republic_of_crimea,tp,True,3,3,1
+1,hungary,zakarpatska,E,24,f,zakarpatska,tp,True,5,3,2
+1,hungary,zakarpatska,E,30,f,zakarpatska,tp,True,5,3,2
+1,hungary,zakarpatska,E,11,m,zakarpatska,tp,True,5,3,2
+1,hungary,zakarpatska,D,17,m,zakarpatska,tp,True,5,3,2
+1,hungary,zakarpatska,D,47,f,zakarpatska,tp,True,5,3,2
+1,bulgaria,lvivska,E,12,f,lvivska,tp,True,0,1,1
+1,bulgaria,lvivska,D,23,f,lvivska,tp,True,0,1,1
+1,germany,kyivska,E,16,m,kyivska,tp,True,5,1,1
+1,germany,kyivska,D,82,m,kyivska,tp,True,5,1,1
+1,germany,kyivska,E,14,m,kyivska,tp,True,1,1,3
+1,germany,kyivska,D,58,f,kyivska,tp,True,1,1,3
+1,germany,kyivska,D,46,f,kyivska,tp,True,1,1,3
+1,germany,kyivska,D,11,f,kyivska,tp,True,1,1,3
+1,spain,sumska,E,35,f,sumska,tp,True,3,3,0
+1,spain,sumska,E,64,f,sumska,tp,True,3,3,0
+1,spain,sumska,E,17,f,sumska,tp,True,3,3,0
+1,italy,mykolaivska,E,7,f,mykolaivska,tp,True,0,3,4
+1,italy,mykolaivska,E,39,f,mykolaivska,tp,True,0,3,4
+1,italy,mykolaivska,E,58,f,mykolaivska,tp,True,0,3,4
+1,italy,mykolaivska,D,18,f,mykolaivska,tp,True,0,3,4
+1,italy,mykolaivska,D,3,f,mykolaivska,tp,True,0,3,4
+1,italy,mykolaivska,D,80,m,mykolaivska,tp,True,0,3,4
+1,italy,mykolaivska,D,85,m,mykolaivska,tp,True,0,3,4
+1,portugal,khersonska,E,63,m,khersonska,tp,True,2,2,1
+1,portugal,khersonska,E,54,f,khersonska,tp,True,2,2,1
+1,portugal,khersonska,D,59,f,khersonska,tp,True,2,2,1
+2,poland,autonomous_republic_of_crimea,E,19,f,autonomous_republic_of_crimea,tp,True,5,4,0
+2,poland,autonomous_republic_of_crimea,E,24,f,autonomous_republic_of_crimea,tp,True,5,4,0
+2,poland,autonomous_republic_of_crimea,E,57,f,autonomous_republic_of_crimea,tp,True,5,4,0
+2,poland,autonomous_republic_of_crimea,E,12,f,autonomous_republic_of_crimea,tp,True,5,4,0
+2,estonia,odeska,E,57,f,odeska,tp,True,5,4,0
+2,estonia,odeska,E,65,m,odeska,tp,True,5,4,0
+2,estonia,odeska,E,34,m,odeska,tp,True,5,4,0
+2,estonia,odeska,E,50,m,odeska,tp,True,5,4,0
+2,italy,mykolaivska,E,78,f,mykolaivska,tp,True,2,1,2
+2,italy,mykolaivska,D,38,f,mykolaivska,tp,True,2,1,2
+2,italy,mykolaivska,D,52,f,mykolaivska,tp,True,2,1,2
+3,poland,autonomous_republic_of_crimea,E,27,f,autonomous_republic_of_crimea,tp,True,3,1,2
+3,poland,autonomous_republic_of_crimea,D,0,m,autonomous_republic_of_crimea,tp,True,3,1,2
+3,poland,autonomous_republic_of_crimea,D,6,f,autonomous_republic_of_crimea,tp,True,3,1,2
+3,republic_of_moldova,dnipropetrovska,E,85,f,dnipropetrovska,tp,True,0,2,1
+3,republic_of_moldova,dnipropetrovska,E,21,f,dnipropetrovska,tp,True,0,2,1
+3,republic_of_moldova,dnipropetrovska,D,31,f,dnipropetrovska,tp,True,0,2,1
+3,germany,kyivska,E,88,f,kyivska,tp,True,3,3,0
+3,germany,kyivska,E,1,f,kyivska,tp,True,3,3,0
+3,germany,kyivska,E,9,f,kyivska,tp,True,3,3,0
+3,germany,kyivska,E,1,m,kyivska,tp,True,5,1,2
+3,germany,kyivska,D,50,f,kyivska,tp,True,5,1,2
+3,germany,kyivska,D,10,m,kyivska,tp,True,5,1,2
+3,germany,kyivska,E,8,f,kyivska,tp,True,5,2,3
+3,germany,kyivska,E,51,m,kyivska,tp,True,5,2,3
+3,germany,kyivska,D,49,m,kyivska,tp,True,5,2,3
+3,germany,kyivska,D,75,f,kyivska,tp,True,5,2,3
+3,germany,kyivska,D,80,m,kyivska,tp,True,5,2,3
+4,republic_of_moldova,dnipropetrovska,E,42,f,dnipropetrovska,tp,True,1,2,0
+4,republic_of_moldova,dnipropetrovska,E,29,f,dnipropetrovska,tp,True,1,2,0
+4,germany,kyivska,E,48,m,kyivska,tp,True,2,3,0
+4,germany,kyivska,E,38,f,kyivska,tp,True,2,3,0
+4,germany,kyivska,E,46,f,kyivska,tp,True,2,3,0
+4,spain,sumska,E,27,f,sumska,tp,True,0,3,0
+4,spain,sumska,E,44,f,sumska,tp,True,0,3,0
+4,spain,sumska,E,35,m,sumska,tp,True,0,3,0
+5,poland,autonomous_republic_of_crimea,E,37,m,autonomous_republic_of_crimea,tp,True,5,1,2
+5,poland,autonomous_republic_of_crimea,D,4,f,autonomous_republic_of_crimea,tp,True,5,1,2
+5,poland,autonomous_republic_of_crimea,D,45,f,autonomous_republic_of_crimea,tp,True,5,1,2
+5,czechia,kharkivska,E,19,f,kharkivska,tp,True,5,1,3
+5,czechia,kharkivska,D,14,m,kharkivska,tp,True,5,1,3
+5,czechia,kharkivska,D,62,f,kharkivska,tp,True,5,1,3
+5,czechia,kharkivska,D,88,f,kharkivska,tp,True,5,1,3
+5,ireland,autonomous_republic_of_crimea,E,61,f,autonomous_republic_of_crimea,tp,True,3,1,3
+5,ireland,autonomous_republic_of_crimea,D,41,m,autonomous_republic_of_crimea,tp,True,3,1,3
+5,ireland,autonomous_republic_of_crimea,D,48,f,autonomous_republic_of_crimea,tp,True,3,1,3
+5,ireland,autonomous_republic_of_crimea,D,50,f,autonomous_republic_of_crimea,tp,True,3,1,3
+5,belgium,kyivska,E,41,m,kyivska,tp,True,0,1,2
+5,belgium,kyivska,D,29,m,kyivska,tp,True,0,1,2
+5,belgium,kyivska,D,42,m,kyivska,tp,True,0,1,2
+6,poland,autonomous_republic_of_crimea,E,18,f,autonomous_republic_of_crimea,tp,True,5,1,2
+6,poland,autonomous_republic_of_crimea,D,19,f,autonomous_republic_of_crimea,tp,True,5,1,2
+6,poland,autonomous_republic_of_crimea,D,12,f,autonomous_republic_of_crimea,tp,True,5,1,2
+6,czechia,kharkivska,E,14,m,kharkivska,tp,True,5,5,0
+6,czechia,kharkivska,E,9,m,kharkivska,tp,True,5,5,0
+6,czechia,kharkivska,E,9,f,kharkivska,tp,True,5,5,0
+6,czechia,kharkivska,E,15,m,kharkivska,tp,True,5,5,0
+6,czechia,kharkivska,E,13,m,kharkivska,tp,True,5,5,0
+6,czechia,kharkivska,E,20,f,kharkivska,tp,True,5,3,0
+6,czechia,kharkivska,E,4,m,kharkivska,tp,True,5,3,0
+6,czechia,kharkivska,E,25,f,kharkivska,tp,True,5,3,0
+6,spain,sumska,E,43,m,sumska,tp,True,5,3,0
+6,spain,sumska,E,44,f,sumska,tp,True,5,3,0
+6,spain,sumska,E,34,f,sumska,tp,True,5,3,0
+7,poland,autonomous_republic_of_crimea,E,51,f,autonomous_republic_of_crimea,tp,True,5,1,3
+7,poland,autonomous_republic_of_crimea,D,58,m,autonomous_republic_of_crimea,tp,True,5,1,3
+7,poland,autonomous_republic_of_crimea,D,30,f,autonomous_republic_of_crimea,tp,True,5,1,3
+7,poland,autonomous_republic_of_crimea,D,13,f,autonomous_republic_of_crimea,tp,True,5,1,3
+7,poland,autonomous_republic_of_crimea,E,24,f,autonomous_republic_of_crimea,tp,True,5,3,0
+7,poland,autonomous_republic_of_crimea,E,7,m,autonomous_republic_of_crimea,tp,True,5,3,0
+7,poland,autonomous_republic_of_crimea,E,63,m,autonomous_republic_of_crimea,tp,True,5,3,0
+7,poland,autonomous_republic_of_crimea,E,16,m,autonomous_republic_of_crimea,tp,True,5,2,0
+7,poland,autonomous_republic_of_crimea,E,9,f,autonomous_republic_of_crimea,tp,True,5,2,0
+7,germany,kyivska,E,34,f,kyivska,tp,True,2,3,1
+7,germany,kyivska,E,36,f,kyivska,tp,True,2,3,1
+7,germany,kyivska,E,41,f,kyivska,tp,True,2,3,1
+7,germany,kyivska,D,63,m,kyivska,tp,True,2,3,1
+7,netherlands,autonomous_republic_of_crimea,E,24,f,autonomous_republic_of_crimea,tp,True,5,2,2
+7,netherlands,autonomous_republic_of_crimea,E,13,f,autonomous_republic_of_crimea,tp,True,5,2,2
+7,netherlands,autonomous_republic_of_crimea,D,19,m,autonomous_republic_of_crimea,tp,True,5,2,2
+7,netherlands,autonomous_republic_of_crimea,D,3,m,autonomous_republic_of_crimea,tp,True,5,2,2
+8,poland,autonomous_republic_of_crimea,E,48,f,autonomous_republic_of_crimea,tp,True,1,2,0
+8,poland,autonomous_republic_of_crimea,E,17,m,autonomous_republic_of_crimea,tp,True,1,2,0
+8,romania,donetska,E,3,m,donetska,tp,True,2,1,1
+8,romania,donetska,D,45,f,donetska,tp,True,2,1,1
+9,germany,kyivska,E,48,f,kyivska,tp,True,5,1,5
+9,germany,kyivska,D,60,m,kyivska,tp,True,5,1,5
+9,germany,kyivska,D,47,f,kyivska,tp,True,5,1,5
+9,germany,kyivska,D,50,f,kyivska,tp,True,5,1,5
+9,germany,kyivska,D,19,m,kyivska,tp,True,5,1,5
+9,germany,kyivska,D,45,f,kyivska,tp,True,5,1,5
+9,spain,sumska,E,33,f,sumska,tp,True,5,3,0
+9,spain,sumska,E,40,f,sumska,tp,True,5,3,0
+9,spain,sumska,E,24,m,sumska,tp,True,5,3,0
+9,portugal,khersonska,E,31,f,khersonska,tp,True,5,1,0
+10,italy,mykolaivska,E,13,f,mykolaivska,tp,True,3,3,1
+10,italy,mykolaivska,E,6,m,mykolaivska,tp,True,3,3,1
+10,italy,mykolaivska,E,29,m,mykolaivska,tp,True,3,3,1
+10,italy,mykolaivska,D,58,m,mykolaivska,tp,True,3,3,1
+10,portugal,khersonska,E,12,m,khersonska,tp,True,5,1,1
+10,portugal,khersonska,D,62,f,khersonska,tp,True,5,1,1
+10,sweden,odeska,E,11,m,odeska,tp,True,3,3,0
+10,sweden,odeska,E,52,m,odeska,tp,True,3,3,0
+10,sweden,odeska,E,10,f,odeska,tp,True,3,3,0
+11,czechia,kharkivska,E,8,f,kharkivska,tp,True,5,1,0
+11,germany,kyivska,E,88,m,kyivska,tp,True,5,3,1
+11,germany,kyivska,E,31,f,kyivska,tp,True,5,3,1
+11,germany,kyivska,E,12,m,kyivska,tp,True,5,3,1
+11,germany,kyivska,D,47,m,kyivska,tp,True,5,3,1
+11,germany,kyivska,E,60,f,kyivska,tp,True,2,1,2
+11,germany,kyivska,D,10,m,kyivska,tp,True,2,1,2
+11,germany,kyivska,D,35,m,kyivska,tp,True,2,1,2
+11,spain,sumska,E,0,f,sumska,tp,True,5,2,1
+11,spain,sumska,E,14,f,sumska,tp,True,5,2,1
+11,spain,sumska,D,34,f,sumska,tp,True,5,2,1
+12,poland,autonomous_republic_of_crimea,E,8,f,autonomous_republic_of_crimea,tp,True,5,4,0
+12,poland,autonomous_republic_of_crimea,E,42,f,autonomous_republic_of_crimea,tp,True,5,4,0
+12,poland,autonomous_republic_of_crimea,E,2,f,autonomous_republic_of_crimea,tp,True,5,4,0
+12,poland,autonomous_republic_of_crimea,E,7,f,autonomous_republic_of_crimea,tp,True,5,4,0
+12,czechia,kharkivska,E,32,f,kharkivska,tp,True,0,1,1
+12,czechia,kharkivska,D,36,f,kharkivska,tp,True,0,1,1
+12,germany,kyivska,E,51,f,kyivska,tp,True,5,3,2
+12,germany,kyivska,E,51,f,kyivska,tp,True,5,3,2
+12,germany,kyivska,E,39,f,kyivska,tp,True,5,3,2
+12,germany,kyivska,D,73,f,kyivska,tp,True,5,3,2
+12,germany,kyivska,D,28,f,kyivska,tp,True,5,3,2
+13,poland,autonomous_republic_of_crimea,E,12,m,autonomous_republic_of_crimea,tp,True,5,3,0
+13,poland,autonomous_republic_of_crimea,E,54,f,autonomous_republic_of_crimea,tp,True,5,3,0
+13,poland,autonomous_republic_of_crimea,E,2,f,autonomous_republic_of_crimea,tp,True,5,3,0
+13,bulgaria,lvivska,E,0,m,lvivska,tp,True,5,2,1
+13,bulgaria,lvivska,E,48,m,lvivska,tp,True,5,2,1
+13,bulgaria,lvivska,D,59,m,lvivska,tp,True,5,2,1
+14,slovakia,odeska,E,17,f,odeska,tp,True,1,2,2
+14,slovakia,odeska,E,4,f,odeska,tp,True,1,2,2
+14,slovakia,odeska,D,7,m,odeska,tp,True,1,2,2
+14,slovakia,odeska,D,40,f,odeska,tp,True,1,2,2
+14,romania,donetska,E,24,m,donetska,tp,True,0,1,2
+14,romania,donetska,D,59,f,donetska,tp,True,0,1,2
+14,romania,donetska,D,13,f,donetska,tp,True,0,1,2
+14,czechia,kharkivska,E,5,m,kharkivska,tp,True,5,1,0
+14,ireland,autonomous_republic_of_crimea,E,58,f,autonomous_republic_of_crimea,tp,True,1,2,2
+14,ireland,autonomous_republic_of_crimea,E,33,m,autonomous_republic_of_crimea,tp,True,1,2,2
+14,ireland,autonomous_republic_of_crimea,D,10,m,autonomous_republic_of_crimea,tp,True,1,2,2
+14,ireland,autonomous_republic_of_crimea,D,14,f,autonomous_republic_of_crimea,tp,True,1,2,2
+14,finland,kyiv,E,48,f,kyiv,tp,True,5,1,0
+15,bulgaria,lvivska,E,12,m,lvivska,tp,True,5,2,1
+15,bulgaria,lvivska,E,37,m,lvivska,tp,True,5,2,1
+15,bulgaria,lvivska,D,17,m,lvivska,tp,True,5,2,1
+15,finland,kyiv,E,56,f,kyiv,tp,True,2,1,0
+15,denmark,zakarpatska,E,23,m,zakarpatska,tp,True,5,3,0
+15,denmark,zakarpatska,E,10,f,zakarpatska,tp,True,5,3,0
+15,denmark,zakarpatska,E,9,f,zakarpatska,tp,True,5,3,0
+16,czechia,kharkivska,E,2,f,kharkivska,tp,True,0,1,1
+16,czechia,kharkivska,D,6,f,kharkivska,tp,True,0,1,1
+17,czechia,kharkivska,E,48,f,kharkivska,tp,True,5,2,0
+17,czechia,kharkivska,E,3,m,kharkivska,tp,True,5,2,0
+18,romania,donetska,E,3,f,donetska,tp,True,5,2,0
+18,romania,donetska,E,20,m,donetska,tp,True,5,2,0
+18,latvia,poltavska,E,28,f,poltavska,tp,True,5,3,1
+18,latvia,poltavska,E,22,f,poltavska,tp,True,5,3,1
+18,latvia,poltavska,E,15,f,poltavska,tp,True,5,3,1
+18,latvia,poltavska,D,36,f,poltavska,tp,True,5,3,1
+18,germany,kyivska,E,30,f,kyivska,tp,True,5,1,2
+18,germany,kyivska,D,25,f,kyivska,tp,True,5,1,2
+18,germany,kyivska,D,58,m,kyivska,tp,True,5,1,2
+18,france,chernihivska,E,34,f,chernihivska,tp,True,5,1,0
+19,germany,kyivska,E,20,f,kyivska,tp,True,3,1,1
+19,germany,kyivska,D,52,f,kyivska,tp,True,3,1,1
+20,lithuania,volynska,E,49,f,volynska,tp,True,2,1,3
+20,lithuania,volynska,D,90,m,volynska,tp,True,2,1,3
+20,lithuania,volynska,D,27,f,volynska,tp,True,2,1,3
+20,lithuania,volynska,D,44,f,volynska,tp,True,2,1,3
+20,germany,kyivska,E,10,f,kyivska,tp,True,5,3,0
+20,germany,kyivska,E,13,m,kyivska,tp,True,5,3,0
+20,germany,kyivska,E,55,m,kyivska,tp,True,5,3,0
+22,poland,autonomous_republic_of_crimea,E,33,f,autonomous_republic_of_crimea,tp,True,5,2,0
+22,poland,autonomous_republic_of_crimea,E,25,f,autonomous_republic_of_crimea,tp,True,5,2,0
+22,czechia,kharkivska,E,32,m,kharkivska,tp,True,5,3,0
+22,czechia,kharkivska,E,56,m,kharkivska,tp,True,5,3,0
+22,czechia,kharkivska,E,25,m,kharkivska,tp,True,5,3,0
+22,germany,kyivska,E,44,m,kyivska,tp,True,2,4,0
+22,germany,kyivska,E,36,f,kyivska,tp,True,2,4,0
+22,germany,kyivska,E,37,f,kyivska,tp,True,2,4,0
+22,germany,kyivska,E,19,m,kyivska,tp,True,2,4,0
+24,poland,autonomous_republic_of_crimea,E,15,f,autonomous_republic_of_crimea,tp,True,5,2,0
+24,poland,autonomous_republic_of_crimea,E,3,f,autonomous_republic_of_crimea,tp,True,5,2,0
+24,croatia,chernihivska,E,43,f,chernihivska,tp,True,5,2,2
+24,croatia,chernihivska,E,55,f,chernihivska,tp,True,5,2,2
+24,croatia,chernihivska,D,55,f,chernihivska,tp,True,5,2,2
+24,croatia,chernihivska,D,46,f,chernihivska,tp,True,5,2,2
+24,greece,zaporizka,E,11,f,zaporizka,tp,True,5,1,1
+24,greece,zaporizka,D,28,f,zaporizka,tp,True,5,1,1
+26,spain,sumska,E,42,f,sumska,tp,True,5,1,0
+26,ireland,autonomous_republic_of_crimea,E,31,m,autonomous_republic_of_crimea,tp,True,5,1,1
+26,ireland,autonomous_republic_of_crimea,D,4,m,autonomous_republic_of_crimea,tp,True,5,1,1
+29,poland,autonomous_republic_of_crimea,E,51,f,autonomous_republic_of_crimea,tp,True,5,1,2
+29,poland,autonomous_republic_of_crimea,D,0,f,autonomous_republic_of_crimea,tp,True,5,1,2
+29,poland,autonomous_republic_of_crimea,D,8,m,autonomous_republic_of_crimea,tp,True,5,1,2
+29,germany,kyivska,E,14,f,kyivska,tp,True,5,2,1
+29,germany,kyivska,E,12,f,kyivska,tp,True,5,2,1
+29,germany,kyivska,D,15,m,kyivska,tp,True,5,2,1
+29,finland,kyiv,E,21,f,kyiv,tp,True,1,2,1
+29,finland,kyiv,E,21,m,kyiv,tp,True,1,2,1
+29,finland,kyiv,D,13,m,kyiv,tp,True,1,2,1
+30,germany,kyivska,E,7,m,kyivska,tp,True,5,3,2
+30,germany,kyivska,E,30,m,kyivska,tp,True,5,3,2
+30,germany,kyivska,E,17,f,kyivska,tp,True,5,3,2
+30,germany,kyivska,D,14,f,kyivska,tp,True,5,3,2
+30,germany,kyivska,D,11,f,kyivska,tp,True,5,3,2
+31,poland,autonomous_republic_of_crimea,E,2,m,autonomous_republic_of_crimea,tp,True,5,1,1
+31,poland,autonomous_republic_of_crimea,D,30,m,autonomous_republic_of_crimea,tp,True,5,1,1
+31,germany,kyivska,E,79,m,kyivska,tp,True,5,1,1
+31,germany,kyivska,D,1,f,kyivska,tp,True,5,1,1
+32,poland,autonomous_republic_of_crimea,E,49,m,autonomous_republic_of_crimea,tp,True,5,2,0
+32,poland,autonomous_republic_of_crimea,E,36,f,autonomous_republic_of_crimea,tp,True,5,2,0
+33,slovakia,odeska,E,18,f,odeska,tp,True,0,3,0
+33,slovakia,odeska,E,62,m,odeska,tp,True,0,3,0
+33,slovakia,odeska,E,55,f,odeska,tp,True,0,3,0
+33,italy,mykolaivska,E,16,m,mykolaivska,tp,True,5,2,1
+33,italy,mykolaivska,E,41,f,mykolaivska,tp,True,5,2,1
+33,italy,mykolaivska,D,18,m,mykolaivska,tp,True,5,2,1
+33,greece,zaporizka,E,48,f,zaporizka,tp,True,5,2,3
+33,greece,zaporizka,E,40,m,zaporizka,tp,True,5,2,3
+33,greece,zaporizka,D,33,f,zaporizka,tp,True,5,2,3
+33,greece,zaporizka,D,25,f,zaporizka,tp,True,5,2,3
+33,greece,zaporizka,D,33,f,zaporizka,tp,True,5,2,3
+34,poland,autonomous_republic_of_crimea,E,62,f,autonomous_republic_of_crimea,tp,True,2,2,0
+34,poland,autonomous_republic_of_crimea,E,7,m,autonomous_republic_of_crimea,tp,True,2,2,0
+34,latvia,poltavska,E,23,f,poltavska,tp,True,1,1,1
+34,latvia,poltavska,D,59,f,poltavska,tp,True,1,1,1
+34,sweden,odeska,E,49,m,odeska,tp,True,5,2,0
+34,sweden,odeska,E,16,m,odeska,tp,True,5,2,0
+35,poland,autonomous_republic_of_crimea,E,5,f,autonomous_republic_of_crimea,tp,True,0,1,0
+37,poland,autonomous_republic_of_crimea,E,13,m,autonomous_republic_of_crimea,tp,True,3,1,0
