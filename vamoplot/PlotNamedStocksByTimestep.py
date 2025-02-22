@@ -174,7 +174,7 @@ def animateLocationViolins(outdir, plot_num, sim_indices, data_indices, loc_name
             handles.append(mpatches.Patch(color='C0', label='Simulations')) 
             ax.legend(handles=handles)
         ax.set_title(f"{y_label} - Day {i}")
-        ax.set(xlabel='Locationsite', ylabel='Observations')
+        ax.set(xlabel='Category', ylabel='Observations')
         ax.yaxis.grid(True)
         ax.set_xticks([y+1 for y in range(len(sim_indices))])
         ax.set_xticklabels(loc_names) #as old version of matplotlib
@@ -199,7 +199,7 @@ def animateLocationViolins(outdir, plot_num, sim_indices, data_indices, loc_name
         ax.legend(handles=handles)
         
     ax.set_title(f"{y_label} - Day {i}")
-    ax.set(xlabel='Location', ylabel='Observations')
+    ax.set(xlabel='Category', ylabel='Observations')
     ax.yaxis.grid(True)
     ax.set_xticks([y + 1 for y in range(len(sim_indices))])
     ax.set_xticklabels(loc_names)
@@ -253,7 +253,7 @@ if __name__ == "__main__":
             fi += 1
 
     if plot_type == "loc_violin_gif" or plot_type == "all":
-        animateLocationViolins(outdir, fi, sim_indices, data_indices, loc_names, y_label, save_fig=True, plot_folder=plotfolder)
+        animateLocationViolins(outdir, fi, sim_indices, data_indices, loc_names, y_label, save_fig=saving, plot_folder=plotfolder)
 
     plt.show()
 
