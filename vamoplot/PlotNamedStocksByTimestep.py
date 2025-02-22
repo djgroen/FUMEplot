@@ -8,7 +8,7 @@ from pathlib import Path
 import matplotlib.patches as mpatches
 import ReadHeaders
 
-def plotLocation(outdir, plot_num, sim_index, data_index, y_label, save_fig=False, plot_folder=None):    
+def plotLocation(outdir, plot_num, loc_index, sim_index, data_index, loc_names, y_label, save_fig=False, plot_folder=None):    
     ensembleSize = 0
     dfTest = []
     # loop through each ensemble job extracting sim data and assigning to df for each location
@@ -28,12 +28,12 @@ def plotLocation(outdir, plot_num, sim_index, data_index, y_label, save_fig=Fals
     plt.legend()
     plt.xlabel('Day')
     plt.ylabel(y_label)
-    plt.title(str(headers[sim_index]))
+    plt.title(str(loc_names[loc_index]))
     
     if save_fig:
-        plt.savefig(plot_folder+'/'+str(headers[sim_index]).replace(" ", "")+'_Ensemble.png')
+        plt.savefig(plot_folder+'/'+str(loc_names[loc_index])+'_Ensemble.png')
 
-def plotLocationSTDBound(outdir, plot_num, sim_index, data_index, y_label, save_fig=False, plot_folder=None):
+def plotLocationSTDBound(outdir, plot_num, loc_index, sim_index, data_index, loc_names, y_label, save_fig=False, plot_folder=None):
     ensembleSize = 0
     dfTest = []
     # loop through each ensemble job extracting sim data and assigning to df for each location
@@ -55,13 +55,13 @@ def plotLocationSTDBound(outdir, plot_num, sim_index, data_index, y_label, save_
     plt.legend()
     plt.xlabel('Day')
     plt.ylabel(y_label)
-    plt.title(str(headers[sim_index]))
+    plt.title(str(loc_names[loc_index]))
      
     if save_fig:
-        plt.savefig(plot_folder+'/'+str(headers[sim_index]).replace(" ", "")+'_std.png')
+        plt.savefig(plot_folder+'/'+str(loc_names[loc_index])+'_std.png')
 
 
-def plotLocationDifferences(outdir, plot_num, sim_index, data_index, save_fig=False, plot_folder=None):    
+def plotLocationDifferences(outdir, plot_num, loc_index, sim_index, data_index, loc_names, save_fig=False, plot_folder=None):    
     ensembleSize = 0
     dfTest = []
     # loop through each ensemble job extracting sim data and assigning to df for each location
@@ -86,12 +86,12 @@ def plotLocationDifferences(outdir, plot_num, sim_index, data_index, save_fig=Fa
     
     plt.xlabel('Day')
     plt.ylabel('Difference (sim - observed)')
-    plt.title(str(headers[sim_index]))
+    plt.title(str(loc_names[loc_index]))
  
     if save_fig:
-        plt.savefig(plot_folder+'/'+str(headers[data_index]).replace(" ", "")+'_Differences.png')
+        plt.savefig(plot_folder+'/'+str(loc_names[loc_index])+'_Differences.png')
 
-def animateLocationHistogram(outdir, plot_num, sim_index, data_index, x_label, save_fig=False, plot_folder=None):    
+def animateLocationHistogram(outdir, plot_num, loc_index, sim_index, data_index, loc_names, x_label, save_fig=False, plot_folder=None):    
     ensembleSize = 0
     maxPop = 0
     dfTest = []
@@ -112,8 +112,8 @@ def animateLocationHistogram(outdir, plot_num, sim_index, data_index, x_label, s
         hist = ax.hist([item[i] for item in dfTest], bins=10, color='c', edgecolor='k', alpha=0.65, label='Ensemble data')
         if data_index > 0:
             data = ax.axvline(df.iloc[i, data_index], color='k', linestyle='dashed', linewidth=1, label='UN data')
-        ax.set_title(str(headers[sim_index] + ' - Day '+ str(i)))
-        ax.set(xlim=[0, 1.1*maxPop], ylim=[0, 10], xlabel='# Refugees', ylabel='Occurances')
+        ax.set_title(str(loc_names[loc_index] + ' - Day '+ str(i)))
+        ax.set(xlim=[0, 1.1*maxPop], ylim=[0, ensembleSize], xlabel=x_label, ylabel='Ensemble Observations')
         #ax.set(ylim=[0, 10], xlabel='# Refugees', ylabel='Occurances')
         ax.legend()
         if data_index > 0:
@@ -126,16 +126,16 @@ def animateLocationHistogram(outdir, plot_num, sim_index, data_index, x_label, s
     ax.hist([item[0] for item in dfTest], bins=10, color='c', edgecolor='k', alpha=0.65, label='Ensemble data')
     if data_index > 0:
         ax.axvline(df.iloc[0, data_index], color='k', linestyle='dashed', linewidth=1, label='UN data')
-    ax.set_title(str(headers[sim_index] + ' - Day '+ str(0)))
+    ax.set_title(str(loc_names[loc_index] + ' - Day '+ str(0)))
 
     # set 
-    ax.set(xlim=[0, 1.1*maxPop], ylim=[0, 10], xlabel=x_label, ylabel='Occurances')
+    ax.set(xlim=[0, 1.1*maxPop], ylim=[0, ensembleSize], xlabel=x_label, ylabel='Ensemble Observations')
     ax.legend()
     
     ani = animation.FuncAnimation(fig, updatehist, len(dfTest[0]))
         
     if save_fig:
-       ani.save(filename=plot_folder+'/'+str(headers[sim_index]).replace(" ", "")+'_Histogram.gif', writer="pillow")
+       ani.save(filename=plot_folder+'/'+str(loc_names[loc_index])+'_Histogram.gif', writer="pillow")
 
 def animateLocationViolins(outdir, plot_num, sim_indices, data_indices, loc_names, y_label, save_fig=False, plot_folder=None):    
     ensembleSize = 0
@@ -214,9 +214,9 @@ def animateLocationViolins(outdir, plot_num, sim_indices, data_indices, loc_name
 #main plotting script
 if __name__ == "__main__":
   
-    
+    code = "facs" #flee or homecoming
     #code = "homecoming" #flee or homecoming
-    code = "flee" #flee or homecoming
+    #code = "flee" #flee or homecoming
     plot_type = "all"
     if len(sys.argv) > 1:
         code = sys.argv[1]
@@ -230,31 +230,30 @@ if __name__ == "__main__":
     ensembleSize = 0
     
     saving=True
-    plotfolder=code+'Plots'
+    plotfolder='../../EnsemblePlots/'+code+'Plots'
     Path(plotfolder).mkdir(parents=True, exist_ok=True)
    
     fi = 0 #fig number
 
     for i in range(len(sim_indices)):
         if plot_type == "loc_lines" or plot_type == "all":
-            plotLocation(outdir, fi, sim_indices[i], data_indices[i], y_label, save_fig=saving, plot_folder=plotfolder)
+            plotLocation(outdir, fi, i, sim_indices[i], data_indices[i], loc_names, y_label, save_fig=saving, plot_folder=plotfolder)
             fi += 1
         if plot_type == "loc_stdev" or plot_type == "all":
-            plotLocationSTDBound(outdir, fi, sim_indices[i], data_indices[i], y_label, save_fig=saving, plot_folder=plotfolder)
+            plotLocationSTDBound(outdir, fi, i, sim_indices[i], data_indices[i], loc_names, y_label, save_fig=saving, plot_folder=plotfolder)
             fi += 1
        
         if data_indices[i]>0:
             if plot_type == "loc_diff" or plot_type == "all":
-                plotLocationDifferences(outdir, fi, sim_indices[i], data_indices[i], save_fig=saving, plot_folder=plotfolder)
+                plotLocationDifferences(outdir, fi, i, sim_indices[i], data_indices[i], loc_names, save_fig=saving, plot_folder=plotfolder)
                 fi += 1
-
-    for i in range(len(sim_indices)): 
+ 
         if plot_type == "loc_hist_gif" or plot_type == "all":
-            animateLocationHistogram(outdir, fi, sim_indices[i], data_indices[i], y_label, save_fig=saving, plot_folder=plotfolder)
+            animateLocationHistogram(outdir, fi, i, sim_indices[i], data_indices[i], loc_names, y_label, save_fig=saving, plot_folder=plotfolder)
             fi += 1
 
-        if plot_type == "loc_violin_gif" or plot_type == "all":
-            animateLocationViolins(outdir, 4*len(sim_indices), sim_indices, data_indices, loc_names, y_label, save_fig=True, plot_folder=plotfolder)
+    if plot_type == "loc_violin_gif" or plot_type == "all":
+        animateLocationViolins(outdir, fi, sim_indices, data_indices, loc_names, y_label, save_fig=True, plot_folder=plotfolder)
 
     plt.show()
 
