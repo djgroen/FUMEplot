@@ -212,18 +212,7 @@ def animateLocationViolins(outdir, plot_num, sim_indices, data_indices, loc_name
 
 
 #main plotting script
-if __name__ == "__main__":
-  
-    code = "facs" #flee or homecoming
-    #code = "homecoming" #flee or homecoming
-    #code = "flee" #flee or homecoming
-    plot_type = "all"
-    if len(sys.argv) > 1:
-        code = sys.argv[1]
-        if len(sys.argv) > 2:
-            plot_type = sys.argv[2]
-
-    outdir = f"../sample_{code}_output"
+def plotNamedStocksByTimestep(code, outdir, plot_type):
 
     headers, sim_indices, data_indices, loc_names, y_label = ReadHeaders.ReadOutHeaders(outdir, mode=code)
 
@@ -258,3 +247,16 @@ if __name__ == "__main__":
     plt.show()
 
 
+if __name__ == "__main__":
+    code = "facs" #flee or homecoming
+    #code = "homecoming" #flee or homecoming
+    #code = "flee" #flee or homecoming
+    plot_type = "all"
+    if len(sys.argv) > 1:
+        code = sys.argv[1]
+        if len(sys.argv) > 2:
+            plot_type = sys.argv[2]
+
+    outdir = f"../sample_{code}_output"
+   
+    plotNamedStocksByTimestep(code, outdir, plot_type)
