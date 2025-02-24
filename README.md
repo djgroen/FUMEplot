@@ -1,5 +1,5 @@
 # FUMEplot
-Facilitated visualisation of Uncertainty in Model Ensemble Outputs in plots.
+Facilitated visualisation of Uncertainty in Model Ensemble outputs in plots.
 
 ## usage
 For testing try:
