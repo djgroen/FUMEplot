@@ -13,9 +13,11 @@ add_local_paths("FUMEplot")
 @task
 def fplot(results_dir, **args):
 
+    update_environment(args)
+    
     code="flee"
 
     #headers, sim_indices, data_indices, loc_names, y_label 
-    FUMEheader = ReadHeaders.ReadOutHeaders(results_dir, mode=code)
+    FUMEheader = ReadHeaders.ReadOutHeaders(f"{env.local_results}/{results_dir}/RUNS", mode=code)
 
-    PlotNamedStocksByTimestep.plotNamedStocksByTimestep(code, results_dir, "loc_lines", FUMEheader)
+    PlotNamedStocksByTimestep.plotNamedStocksByTimestep(code, f"{env.local_results}/{results_dir}/RUNS", "loc_lines", FUMEheader)
