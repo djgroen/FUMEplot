@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+from dataclasses import dataclass
 
 def ReadMovelogHeaders(outdir, mode="homecoming"):
     move_log_name = "migration.log"
@@ -8,6 +9,18 @@ def ReadMovelogHeaders(outdir, mode="homecoming"):
         headers = list(df)
 
     return headers
+
+
+@dataclass
+class FUMEheader:
+    """
+    Header struct containing all necessary fields.
+    """
+    headers: list 
+    sim_indices: list 
+    data_indices: list
+    loc_names: list
+    y_label: str = ""
 
 
 def ReadOutHeaders(outdir, mode="flee"):
@@ -37,7 +50,7 @@ def ReadOutHeaders(outdir, mode="flee"):
             sim_indices = [2,3,4,5,6,7,8,9]
             data_indices = [-1,-1,-1,-1,-1,-1,-1,-1]
             y_label = "# of occurrences"
-            return headers, sim_indices, data_indices, loc_names, y_label
+            return FUMEheader(headers, sim_indices, data_indices, loc_names, y_label)
         break 
     
     sim_indices = []
@@ -53,5 +66,5 @@ def ReadOutHeaders(outdir, mode="flee"):
             data_indices.append(-1) #indicates no data.
     
     
-    return headers, sim_indices, data_indices, loc_names, y_label
+    return FUMEheader(headers, sim_indices, data_indices, loc_names, y_label)
 

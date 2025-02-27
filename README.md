@@ -1,5 +1,5 @@
-# vamoplot
-Visualising Agent-based Modelling Output in PLOTs.
+# FUMEplot
+Facilitated visualisation of Uncertainty in Model Ensemble outputs using plots.
 
 ## usage
 For testing try:

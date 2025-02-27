@@ -6,7 +6,6 @@ import os
 import sys
 from pathlib import Path
 import matplotlib.patches as mpatches
-import ReadHeaders
 
 def plotLocation(outdir, plot_num, loc_index, sim_index, data_index, loc_names, y_label, save_fig=False, plot_folder=None):    
     ensembleSize = 0
@@ -212,20 +211,13 @@ def animateLocationViolins(outdir, plot_num, sim_indices, data_indices, loc_name
 
 
 #main plotting script
-if __name__ == "__main__":
-  
-    code = "facs" #flee or homecoming
-    #code = "homecoming" #flee or homecoming
-    #code = "flee" #flee or homecoming
-    plot_type = "all"
-    if len(sys.argv) > 1:
-        code = sys.argv[1]
-        if len(sys.argv) > 2:
-            plot_type = sys.argv[2]
+def plotNamedStocksByTimestep(code, outdir, plot_type, FUMEheader):
 
-    outdir = f"../sample_{code}_output"
-
-    headers, sim_indices, data_indices, loc_names, y_label = ReadHeaders.ReadOutHeaders(outdir, mode=code)
+    headers = FUMEheader.headers
+    sim_indices = FUMEheader.sim_indices
+    data_indices = FUMEheader.data_indices
+    loc_names= FUMEheader.loc_names
+    y_label = FUMEheader.y_label
 
     ensembleSize = 0
     
@@ -258,3 +250,19 @@ if __name__ == "__main__":
     plt.show()
 
 
+if __name__ == "__main__":
+    import ReadHeaders
+
+    code = "facs" #flee or homecoming
+    #code = "homecoming" #flee or homecoming
+    #code = "flee" #flee or homecoming
+    plot_type = "all"
+    if len(sys.argv) > 1:
+        code = sys.argv[1]
+        if len(sys.argv) > 2:
+            plot_type = sys.argv[2]
+
+    outdir = f"../sample_{code}_output"
+   
+    FUMEheader = ReadHeaders.ReadOutHeaders(outdir, mode=code)
+    plotNamedStocksByTimestep(code, outdir, plot_type, FUMEheader)
