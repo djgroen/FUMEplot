@@ -1,25 +1,23 @@
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
+import matplotlib.animation as animation
+import pandas as pd
+import os
+import sys
+from pathlib import Path
+import matplotlib.patches as mpatches
+import ReadHeaders
 
-if __name__ == "__main__":
-
-    #df = pd.read_csv("../sample_homecoming_agentlog/1/migration.log")
-
-    # Count occurrences of each source
-    #source_counts = df['source'].value_counts()
+def plotSourceHist(outdir, save_fig=False, plot_folder=None):
     
-    # Plot histogram
-    #plt.figure(figsize=(10, 6))
-    #sns.barplot(x=source_counts.index, y=source_counts.values, palette='Set3')
-    #plt.bar(source_counts.index, source_counts.values, color='skyblue')
-
     # Read and aggregate data from multiple CSV files
     all_counts = []
     
     csv_files = []
-    for i in range(1,11):
-        csv_files.append(f"../sample_homecoming_agentlog/{i}/migration.log")
+    for name in os.listdir(outdir):
+        csv_files.append(f"{outdir}/{name}/migration.log")
+#    for i in range(1,11):
+#       csv_files.append(f"../sample_homecoming_agentlog/{i}/migration.log")
 
     for file in csv_files:
         df = pd.read_csv(file)
@@ -33,7 +31,7 @@ if __name__ == "__main__":
     mean_counts = combined_counts.mean()
     std_counts = combined_counts.std()
     
-    # Plot histogram with error bars
+        # Plot histogram with error bars
     plt.figure(figsize=(10, 6))
     plt.bar(mean_counts.index, mean_counts.values, yerr=std_counts.values, color='skyblue', capsize=5)
 
@@ -42,6 +40,38 @@ if __name__ == "__main__":
     plt.ylabel('Number of Entries')
     plt.title('Histogram of Entries Grouped by Source')
     plt.xticks(rotation=45)
+    
+    if save_fig:
+        plt.savefig(plot_folder+'/EntriesBySource.png')
+
+
+
+if __name__ == "__main__":
+
+    code = "homecoming" 
+    
+    plot_type = "all"
+    if len(sys.argv) > 1:
+        code = sys.argv[1]
+        if len(sys.argv) > 2:
+            plot_type = sys.argv[2]
+
+    outdir = f"../sample_{code}_agentlog"
+
+    headers = ReadHeaders.ReadMovelogHeaders(outdir, mode=code)
+
+    ensembleSize = 0
+    
+    saving=True
+    plotfolder='../../EnsemblePlots/'+code+'Plots'
+    Path(plotfolder).mkdir(parents=True, exist_ok=True)
+    
+    fi=0
+    if plot_type == "source_hist" or plot_type == "all":
+        plotSourceHist(outdir, save_fig=saving, plot_folder=plotfolder)
+
+    
+
     
     # Show plot
     plt.show()
