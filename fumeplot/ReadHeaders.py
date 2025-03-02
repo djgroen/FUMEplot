@@ -30,7 +30,7 @@ def ReadOutHeaders(outdir, mode="flee"):
     loc_names = []
     y_label = ""
 
-    replica_mode = False:
+    replica_mode = False
     if "_replica_" in outdir:
         replica_mode = True
 
