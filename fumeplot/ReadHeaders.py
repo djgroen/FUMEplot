@@ -30,9 +30,26 @@ def ReadOutHeaders(outdir, mode="flee"):
     loc_names = []
     y_label = ""
 
+    replica_mode = False:
+    if "_replica_" in outdir:
+        replica_mode = True
+
+    outfiles= []
+    if not replica_mode:
+        for name in os.listdir(outdir):
+            outfiles.append(f"{outdir}/{name}/out.csv")
+    else:
+        split_dir = os.path.split(outdir)
+        base_dir = split_dir[0]
+        pattern = split_dir[1]
+        for name in os.listdir(base_dir):
+            if name.startswith(pattern):
+                outfiles.append(f"{base_dir}/{name}/out.csv")
+    #TODO: test replica mode.
+
     #Read first results file header for variable names
-    for name in os.listdir(outdir):
-        df = pd.read_csv(f"{outdir}/{name}/out.csv")
+    for name in outfiles:
+        df = pd.read_csv(name)
         headers = list(df)
 
         if mode == "flee":
