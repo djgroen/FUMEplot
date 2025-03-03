@@ -6,7 +6,6 @@ import os
 import sys
 from pathlib import Path
 import matplotlib.patches as mpatches
-import ReadHeaders
 
 def plotSourceHist(outdir, save_fig=False, plot_folder=None):
     
@@ -45,9 +44,14 @@ def plotSourceHist(outdir, save_fig=False, plot_folder=None):
         plt.savefig(plot_folder+'/EntriesBySource.png')
 
 
+def plotNamedSingleByTimestep(code, outdir, plot_type, FUMEheader):
+    plotSourceHist(outdir, save_fig=False, plot_folder=None)
+
+
 
 if __name__ == "__main__":
 
+    import ReadHeaders
     code = "homecoming" 
     
     plot_type = "all"

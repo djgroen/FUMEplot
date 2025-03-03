@@ -5,9 +5,9 @@ except ImportError:
     from base.fab import *
 
 try:
-    from fabsim.plugins.FUMEplot.fumeplot import PlotNamedStocksByTimestep,ReadHeaders
+    from fabsim.plugins.FUMEplot.fumeplot import PlotNamedStocksByTimestep,PlotNamedSingleByTimestep,ReadHeaders
 except:
-    from plugins.FUMEplot.fumeplot import PlotNamedStocksByTimestep,ReadHeaders
+    from plugins.FUMEplot.fumeplot import PlotNamedStocksByTimestep,PlotNamedSingleByTimestep,ReadHeaders
 
 
 import sys
@@ -46,7 +46,14 @@ def fplot(results_dir, **args):
     if "FabCovid19" in config_path:
         code="facs"
 
-    #headers, sim_indices, data_indices, loc_names, y_label 
-    FUMEheader = ReadHeaders.ReadOutHeaders(f"{env.local_results}/{results_dir}/RUNS", mode=code)
+    outdir = f"{env.local_results}/{results_dir}/RUNS"
 
-    PlotNamedStocksByTimestep.plotNamedStocksByTimestep(code, f"{env.local_results}/{results_dir}/RUNS", "loc_lines", FUMEheader)
+    #headers, sim_indices, data_indices, loc_names, y_label 
+    FUMEheader = ReadHeaders.ReadOutHeaders(outdir, mode=code)
+
+
+    if code == "homecoming":
+        FUMEheader = ReadHeaders.ReadMovelogHeaders(outdir, mode=code)
+        PlotNamedSingleByTimestep.plotNamedSingleByTimestep(code, outdir, "loc_lines", FUMEheader)
+    else:
+        PlotNamedStocksByTimestep.plotNamedStocksByTimestep(code, outdir, "loc_lines", FUMEheader)
