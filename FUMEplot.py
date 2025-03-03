@@ -4,7 +4,12 @@ try:
 except ImportError:
     from base.fab import *
 
-from fumeplot import PlotNamedStocksByTimestep,ReadHeaders
+try:
+    from fabsim.plugins.FUMEplot.fumeplot import PlotNamedStocksByTimestep,ReadHeaders
+except:
+    from plugins.FUMEplot.fumeplot import PlotNamedStocksByTimestep,ReadHeaders
+
+
 import sys
 
 # Add local script, blackbox and template path.
