@@ -42,9 +42,10 @@ def plotSourceHist(outdir, save_fig=False, plot_folder=None):
         df = pd.read_csv(file)
         source_counts = df['source'].value_counts()
         all_counts.append(source_counts)
-    
+   
     plotCounts(0, all_counts, save_fig, plot_folder)
 
+    all_counts = []
     for file in csv_files:
         df = pd.read_csv(file)
         df2 = df[df['gender'] == 'f']
@@ -53,6 +54,7 @@ def plotSourceHist(outdir, save_fig=False, plot_folder=None):
 
     plotCounts(1, all_counts, save_fig, plot_folder)
 
+    all_counts = []
     for file in csv_files:
         df = pd.read_csv(file)
         df2 = df[df['gender'] == 'm']
