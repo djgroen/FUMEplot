@@ -49,6 +49,6 @@ Because replicated runs have a slightly different directory structure, FUMEplot 
 fabsim localhost fplot:<base_name_of_replica_run_subdirectory>
 ```
 
-For example, if your replicas have names ranging from ```flee_archer2_24_replica_1``` to ```flee_archer2_24_replica_9```, then the ```base_name_of_replica_run_subdirectory``` should beset to ```flee_archer2_24_replica_```.
+For example, if your replicas have names ranging from ```flee_archer2_24_replica_1``` to ```flee_archer2_24_replica_9```, then the ```base_name_of_replica_run_subdirectory``` should be set to ```flee_archer2_24_replica_```.
 
 
