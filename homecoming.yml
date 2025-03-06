@@ -1,0 +1,5 @@
+NamedStocksByTimestep:
+  modes: ["loc_lines"]
+
+NamedSingleByTimestep:
+  modes: ["loc_lines"]

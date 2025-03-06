@@ -38,6 +38,7 @@ def fplot(results_dir, **args):
    
     code="NOT_DETECTED"
     config_path = load_config_path(results_dir)
+    file_loc = os.path.dirname(__file__)
 
     if "FabFlee" in config_path:
         code="flee"
@@ -46,14 +47,28 @@ def fplot(results_dir, **args):
     if "FabCovid19" in config_path:
         code="facs"
 
+    config = {}
+    with open(f"{file_loc}/{code}.yml") as config_stream:
+        try:
+            config = yaml.safe_load(config_stream)
+        except yaml.YAMLError as exc:
+            print(exc, file=sys.stderr)
+            sys.exit()
+
+    print(config)
+    print(config["NamedSingleByTimestep"])
+
     outdir = f"{env.local_results}/{results_dir}/RUNS"
 
     #headers, sim_indices, data_indices, loc_names, y_label 
     FUMEheader = ReadHeaders.ReadOutHeaders(outdir, mode=code)
 
-
-    if code == "homecoming":
-        FUMEheader = ReadHeaders.ReadMovelogHeaders(outdir, mode=code)
-        PlotNamedSingleByTimestep.plotNamedSingleByTimestep(code, outdir, "loc_lines", FUMEheader)
-    else:
-        PlotNamedStocksByTimestep.plotNamedStocksByTimestep(code, outdir, "loc_lines", FUMEheader)
+    if "NamedSingleByTimestep" in config:
+        if code == "homecoming":
+            FUMEmovelogheader = ReadHeaders.ReadMovelogHeaders(outdir, mode=code)
+            for m in config["NamedSingleByTimestep"]["modes"]:
+                PlotNamedSingleByTimestep.plotNamedSingleByTimestep(code, outdir, m, FUMEmovelogheader)
+    
+    if "NamedStocksByTimestep" in config:
+        for m in config["NamedSingleByTimestep"]["modes"]:
+            PlotNamedStocksByTimestep.plotNamedStocksByTimestep(code, outdir, m, FUMEheader)

@@ -253,9 +253,7 @@ def plotNamedStocksByTimestep(code, outdir, plot_type, FUMEheader):
 if __name__ == "__main__":
     import ReadHeaders
 
-    code = "facs" #flee or homecoming
-    #code = "homecoming" #flee or homecoming
-    #code = "flee" #flee or homecoming
+    code = "facs" #flee, facs or homecoming
     plot_type = "all"
     if len(sys.argv) > 1:
         code = sys.argv[1]
