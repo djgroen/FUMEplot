@@ -18,8 +18,23 @@ add_local_paths("FUMEplot")
 def load_config_path(results_dir, **args):
     update_environment(args)
 
-    for name in os.listdir(f"{env.local_results}/{results_dir}/RUNS"):
-        env_file_name = f"{env.local_results}/{results_dir}/RUNS/{name}/env.yml"
+    runsdir = f"{env.local_results}/{results_dir}/RUNS"
+
+    if results_dir.endswith("_replica_"):
+        #replica mode
+        runsdir = f"{env.local_results}/{results_dir}1"
+        env_file_name = f"{runsdir}/env.yml"
+        with open(env_file_name, 'r') as file:
+            # Read each line in the file
+            for line in file:
+                if line.startswith("job_config_path_local:"):
+                    return line
+
+            print(f"ERROR: no variable job_config_path_local found in {env_file_name}.")
+            sys.exit()
+
+    for name in os.listdir(runsdir):
+        env_file_name = f"{runsdir}/{name}/env.yml"
         with open(env_file_name, 'r') as file:
             # Read each line in the file
             for line in file:
@@ -56,19 +71,18 @@ def fplot(results_dir, **args):
             sys.exit()
 
     print(config)
-    print(config["NamedSingleByTimestep"])
 
-    outdir = f"{env.local_results}/{results_dir}/RUNS"
+    outdirs = ReadHeaders.GetOutDirs(f"{env.local_results}/{results_dir}")
 
     #headers, sim_indices, data_indices, loc_names, y_label 
-    FUMEheader = ReadHeaders.ReadOutHeaders(outdir, mode=code)
+    FUMEheader = ReadHeaders.ReadOutHeaders(outdirs, mode=code)
 
     if "NamedSingleByTimestep" in config:
         if code == "homecoming":
-            FUMEmovelogheader = ReadHeaders.ReadMovelogHeaders(outdir, mode=code)
+            FUMEmovelogheader = ReadHeaders.ReadMovelogHeaders(outdirs, mode=code)
             for m in config["NamedSingleByTimestep"]["modes"]:
-                PlotNamedSingleByTimestep.plotNamedSingleByTimestep(code, outdir, m, FUMEmovelogheader, filters=config["NamedSingleByTimestep"]["filters"])
+                PlotNamedSingleByTimestep.plotNamedSingleByTimestep(code, outdirs, m, FUMEmovelogheader, filters=config["NamedSingleByTimestep"]["filters"])
     
     if "NamedStocksByTimestep" in config:
-        for m in config["NamedSingleByTimestep"]["modes"]:
-            PlotNamedStocksByTimestep.plotNamedStocksByTimestep(code, outdir, m, FUMEheader)
+        for m in config["NamedStocksByTimestep"]["modes"]:
+            PlotNamedStocksByTimestep.plotNamedStocksByTimestep(code, outdirs, m, FUMEheader)

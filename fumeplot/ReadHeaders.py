@@ -1,11 +1,12 @@
 import os
+import sys
 import pandas as pd
 from dataclasses import dataclass
 
-def ReadMovelogHeaders(outdir, mode="homecoming"):
+def ReadMovelogHeaders(outdirs, mode="homecoming"):
     move_log_name = "migration.log"
-    for name in os.listdir(outdir):
-        df = pd.read_csv(f"{outdir}/{name}/{move_log_name}")
+    for d in outdirs:
+        df = pd.read_csv(f"{d}/{move_log_name}")
         headers = list(df)
 
     return headers
@@ -23,29 +24,38 @@ class FUMEheader:
     y_label: str = ""
 
 
-def ReadOutHeaders(outdir, mode="flee"):
+def GetOutDirs(outdir):
+    replica_mode = False
+    if "_replica_" in outdir:
+        replica_mode = True
+
+    outdirs= []
+    if not replica_mode:
+        for name in os.listdir(f"{outdir}/RUNS"):
+            outdirs.append(f"{outdir}/RUNS/{name}")
+    else:
+        i = 1
+        print(f"{outdir}{i}")
+        while os.path.isdir(f"{outdir}{i}"):
+            outdirs.append(f"{outdir}{i}")
+            i += 1
+
+    print("OUTDIRS:")
+    print(outdirs)
+
+    return outdirs
+
+
+def ReadOutHeaders(outdirs, mode="flee"):
 
     headers = []
     numLocs = 0
     loc_names = []
     y_label = ""
 
-    replica_mode = False
-    if "_replica_" in outdir:
-        replica_mode = True
-
-    outfiles= []
-    if not replica_mode:
-        for name in os.listdir(outdir):
-            outfiles.append(f"{outdir}/{name}/out.csv")
-    else:
-        split_dir = os.path.split(outdir)
-        base_dir = split_dir[0]
-        pattern = split_dir[1]
-        for name in os.listdir(base_dir):
-            if name.startswith(pattern):
-                outfiles.append(f"{base_dir}/{name}/out.csv")
-    #TODO: test replica mode.
+    outfiles = []
+    for d in outdirs:
+        outfiles.append(f"{d}/out.csv")
 
     #Read first results file header for variable names
     for name in outfiles:

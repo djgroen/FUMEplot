@@ -7,12 +7,12 @@ import sys
 from pathlib import Path
 import matplotlib.patches as mpatches
 
-def plotLocation(outdir, plot_num, loc_index, sim_index, data_index, loc_names, y_label, save_fig=False, plot_folder=None):    
+def plotLocation(outdirs, plot_num, loc_index, sim_index, data_index, loc_names, y_label, save_fig=False, plot_folder=None):    
     ensembleSize = 0
     dfTest = []
     # loop through each ensemble job extracting sim data and assigning to df for each location
-    for name in os.listdir(outdir):
-        df = pd.read_csv(f"{outdir}/{name}/out.csv")
+    for d in outdirs:
+        df = pd.read_csv(f"{d}/out.csv")
         dfTest.append(df.iloc[:, sim_index].T)
         ensembleSize += 1
     
@@ -32,12 +32,12 @@ def plotLocation(outdir, plot_num, loc_index, sim_index, data_index, loc_names, 
     if save_fig:
         plt.savefig(plot_folder+'/'+str(loc_names[loc_index])+'_Ensemble.png')
 
-def plotLocationSTDBound(outdir, plot_num, loc_index, sim_index, data_index, loc_names, y_label, save_fig=False, plot_folder=None):
+def plotLocationSTDBound(outdirs, plot_num, loc_index, sim_index, data_index, loc_names, y_label, save_fig=False, plot_folder=None):
     ensembleSize = 0
     dfTest = []
     # loop through each ensemble job extracting sim data and assigning to df for each location
-    for name in os.listdir(outdir):
-        df = pd.read_csv(f"{outdir}/{name}/out.csv")
+    for d in outdirs:
+        df = pd.read_csv(f"{d}/out.csv")
         dfTest.append(df.iloc[:, sim_index].T)
         ensembleSize += 1
     
@@ -60,12 +60,12 @@ def plotLocationSTDBound(outdir, plot_num, loc_index, sim_index, data_index, loc
         plt.savefig(plot_folder+'/'+str(loc_names[loc_index])+'_std.png')
 
 
-def plotLocationDifferences(outdir, plot_num, loc_index, sim_index, data_index, loc_names, save_fig=False, plot_folder=None):    
+def plotLocationDifferences(outdirs, plot_num, loc_index, sim_index, data_index, loc_names, save_fig=False, plot_folder=None):    
     ensembleSize = 0
     dfTest = []
     # loop through each ensemble job extracting sim data and assigning to df for each location
-    for name in os.listdir(outdir):
-        df = pd.read_csv(f"{outdir}/{name}/out.csv")
+    for d in outdirs:
+        df = pd.read_csv(f"{d}/out.csv")
         dfTest.append(df.iloc[:, sim_index].T)
         ensembleSize += 1
     
@@ -90,13 +90,13 @@ def plotLocationDifferences(outdir, plot_num, loc_index, sim_index, data_index, 
     if save_fig:
         plt.savefig(plot_folder+'/'+str(loc_names[loc_index])+'_Differences.png')
 
-def animateLocationHistogram(outdir, plot_num, loc_index, sim_index, data_index, loc_names, x_label, save_fig=False, plot_folder=None):    
+def animateLocationHistogram(outdirs, plot_num, loc_index, sim_index, data_index, loc_names, x_label, save_fig=False, plot_folder=None):    
     ensembleSize = 0
     maxPop = 0
     dfTest = []
     # loop through each ensemble job extracting sim data and assigning to df for each location
-    for name in os.listdir(outdir):
-        df = pd.read_csv(f"{outdir}/{name}/out.csv")
+    for d in outdirs:
+        df = pd.read_csv(f"{d}/out.csv")
         dfTest.append(df.iloc[:, sim_index].T)
         if data_index > 0:
             if maxPop < max(max(df.iloc[:, sim_index]),max(df.iloc[:, data_index])):
@@ -136,14 +136,14 @@ def animateLocationHistogram(outdir, plot_num, loc_index, sim_index, data_index,
     if save_fig:
        ani.save(filename=plot_folder+'/'+str(loc_names[loc_index])+'_Histogram.gif', writer="pillow")
 
-def animateLocationViolins(outdir, plot_num, i, sim_indices, data_indices, loc_names, y_label, save_fig=False, plot_folder=None):    
+def animateLocationViolins(outdirs, plot_num, i, sim_indices, data_indices, loc_names, y_label, save_fig=False, plot_folder=None):    
     ensembleSize = 0
     maxPop = 0
     dfFull = []
     # loop through each ensemble job extracting sim data and assigning to df for each location
-    for name in os.listdir(outdir):
+    for d in outdirs:
         dfTest=[]
-        df = pd.read_csv(f"{outdir}/{name}/out.csv")
+        df = pd.read_csv(f"{d}/out.csv")
         
         for sim_index in sim_indices:
             dfTest.append(df.iloc[:, sim_index].T)
@@ -211,7 +211,7 @@ def animateLocationViolins(outdir, plot_num, i, sim_indices, data_indices, loc_n
 
 
 #main plotting script
-def plotNamedStocksByTimestep(code, outdir, plot_type, FUMEheader):
+def plotNamedStocksByTimestep(code, outdirs, plot_type, FUMEheader):
 
     headers = FUMEheader.headers
     sim_indices = FUMEheader.sim_indices
@@ -229,23 +229,23 @@ def plotNamedStocksByTimestep(code, outdir, plot_type, FUMEheader):
 
     for i in range(len(sim_indices)):
         if plot_type == "loc_lines" or plot_type == "all":
-            plotLocation(outdir, fi, i, sim_indices[i], data_indices[i], loc_names, y_label, save_fig=saving, plot_folder=plotfolder)
+            plotLocation(outdirs, fi, i, sim_indices[i], data_indices[i], loc_names, y_label, save_fig=saving, plot_folder=plotfolder)
             fi += 1
         if plot_type == "loc_stdev" or plot_type == "all":
-            plotLocationSTDBound(outdir, fi, i, sim_indices[i], data_indices[i], loc_names, y_label, save_fig=saving, plot_folder=plotfolder)
+            plotLocationSTDBound(outdirs, fi, i, sim_indices[i], data_indices[i], loc_names, y_label, save_fig=saving, plot_folder=plotfolder)
             fi += 1
        
         if data_indices[i]>0:
             if plot_type == "loc_diff" or plot_type == "all":
-                plotLocationDifferences(outdir, fi, i, sim_indices[i], data_indices[i], loc_names, save_fig=saving, plot_folder=plotfolder)
+                plotLocationDifferences(outdirs, fi, i, sim_indices[i], data_indices[i], loc_names, save_fig=saving, plot_folder=plotfolder)
                 fi += 1
  
         if plot_type == "loc_hist_gif" or plot_type == "all":
-            animateLocationHistogram(outdir, fi, i, sim_indices[i], data_indices[i], loc_names, y_label, save_fig=saving, plot_folder=plotfolder)
+            animateLocationHistogram(outdirs, fi, i, sim_indices[i], data_indices[i], loc_names, y_label, save_fig=saving, plot_folder=plotfolder)
             fi += 1
 
         if plot_type == "loc_violin_gif" or plot_type == "all":
-            animateLocationViolins(outdir, fi, i, sim_indices, data_indices, loc_names, y_label, save_fig=saving, plot_folder=plotfolder)
+            animateLocationViolins(outdirs, fi, i, sim_indices, data_indices, loc_names, y_label, save_fig=saving, plot_folder=plotfolder)
 
     plt.show()
 
@@ -262,8 +262,9 @@ if __name__ == "__main__":
 
     outdir = f"../sample_{code}_output"
    
-    FUMEheader = ReadHeaders.ReadOutHeaders(outdir, mode=code)
-    plotNamedStocksByTimestep(code, outdir, plot_type, FUMEheader)
+    outdirs = ReadHeaders.GetOutDirs(outdir)
+    FUMEheader = ReadHeaders.ReadOutHeaders(outdirs, mode=code)
+    plotNamedStocksByTimestep(code, outdirs, plot_type, FUMEheader)
 
 
 # ISSUES:

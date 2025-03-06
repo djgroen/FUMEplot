@@ -61,14 +61,14 @@ def _getFilteredCounts(csv_files, query, var_type="str"):
     return all_counts
 
 
-def plotSourceHist(outdir, filters, save_fig=False, plot_folder=None):
+def plotSourceHist(outdirs, filters, save_fig=False, plot_folder=None):
     
     # Read and aggregate data from multiple CSV files
     all_counts = []
     
     csv_files = []
-    for name in os.listdir(outdir):
-        csv_files.append(f"{outdir}/{name}/migration.log")
+    for d in outdirs:
+        csv_files.append(f"{d}/migration.log")
 
     for file in csv_files:
         df = pd.read_csv(file)
@@ -103,7 +103,9 @@ if __name__ == "__main__":
 
     outdir = f"../sample_{code}_agentlog"
 
-    headers = ReadHeaders.ReadMovelogHeaders(outdir, mode=code)
+    outdirs = ReadHeaders.GetOutDirs(outdir)
+
+    headers = ReadHeaders.ReadMovelogHeaders(outdirs, mode=code)
 
     ensembleSize = 0
     
@@ -113,7 +115,7 @@ if __name__ == "__main__":
     
     fi=0
     if plot_type == "source_hist" or plot_type == "all":
-        plotSourceHist(outdir, save_fig=saving, plot_folder=plotfolder)
+        plotSourceHist(outdirs, save_fig=saving, plot_folder=plotfolder)
 
     
 
