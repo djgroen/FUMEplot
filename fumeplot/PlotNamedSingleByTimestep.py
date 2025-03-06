@@ -29,6 +29,25 @@ def plotCounts(plot_num, all_counts, save_fig, plot_folder):
         plt.savefig(plot_folder+'/EntriesBySource.png')
 
 
+
+def _getFilteredCounts(csv_files, query, var_type="str"):
+
+    #non-str var types not supported yet.
+
+    parts = query.split(" ")
+    col = parts[0]
+    comparison_operator = parts[1] # not supported yet
+    val = parts[2]
+
+    all_counts = []
+    for file in csv_files:
+        df = pd.read_csv(file)
+        df2 = df[df[col] == val]
+        source_counts = df2['source'].value_counts()
+        all_counts.append(source_counts)
+    return all_counts
+
+
 def plotSourceHist(outdir, save_fig=False, plot_folder=None):
     
     # Read and aggregate data from multiple CSV files
@@ -45,22 +64,10 @@ def plotSourceHist(outdir, save_fig=False, plot_folder=None):
    
     plotCounts(0, all_counts, save_fig, plot_folder)
 
-    all_counts = []
-    for file in csv_files:
-        df = pd.read_csv(file)
-        df2 = df[df['gender'] == 'f']
-        source_counts = df2['source'].value_counts()
-        all_counts.append(source_counts)
-
+    all_counts = _getFilteredCounts(csv_files, "gender == f")
     plotCounts(1, all_counts, save_fig, plot_folder)
 
-    all_counts = []
-    for file in csv_files:
-        df = pd.read_csv(file)
-        df2 = df[df['gender'] == 'm']
-        source_counts = df2['source'].value_counts()
-        all_counts.append(source_counts)
-
+    all_counts = _getFilteredCounts(csv_files, "gender == m")
     plotCounts(2, all_counts, save_fig, plot_folder)
 
     plt.show()
