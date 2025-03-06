@@ -67,7 +67,7 @@ def fplot(results_dir, **args):
         if code == "homecoming":
             FUMEmovelogheader = ReadHeaders.ReadMovelogHeaders(outdir, mode=code)
             for m in config["NamedSingleByTimestep"]["modes"]:
-                PlotNamedSingleByTimestep.plotNamedSingleByTimestep(code, outdir, m, FUMEmovelogheader)
+                PlotNamedSingleByTimestep.plotNamedSingleByTimestep(code, outdir, m, FUMEmovelogheader, filters=config["NamedSingleByTimestep"]["filters"])
     
     if "NamedStocksByTimestep" in config:
         for m in config["NamedSingleByTimestep"]["modes"]:

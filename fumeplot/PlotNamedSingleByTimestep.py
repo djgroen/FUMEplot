@@ -61,7 +61,7 @@ def _getFilteredCounts(csv_files, query, var_type="str"):
     return all_counts
 
 
-def plotSourceHist(outdir, save_fig=False, plot_folder=None):
+def plotSourceHist(outdir, filters, save_fig=False, plot_folder=None):
     
     # Read and aggregate data from multiple CSV files
     all_counts = []
@@ -77,16 +77,16 @@ def plotSourceHist(outdir, save_fig=False, plot_folder=None):
    
     plotCounts(0, all_counts, save_fig, plot_folder)
 
-    all_counts = _getFilteredCounts(csv_files, "gender == f")
-    plotCounts(1, all_counts, save_fig, plot_folder)
-
-    all_counts = _getFilteredCounts(csv_files, "gender == m")
-    plotCounts(2, all_counts, save_fig, plot_folder)
+    i = 1
+    for f in filters:
+        all_counts = _getFilteredCounts(csv_files, f)
+        plotCounts(i, all_counts, save_fig, plot_folder)
+        i += 1
 
     plt.show()
     
-def plotNamedSingleByTimestep(code, outdir, plot_type, FUMEheader):
-    plotSourceHist(outdir, save_fig=False, plot_folder=None)
+def plotNamedSingleByTimestep(code, outdir, plot_type, FUMEheader, filters=[]):
+    plotSourceHist(outdir, filters, save_fig=False, plot_folder=None)
 
 
 
