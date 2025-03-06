@@ -32,19 +32,32 @@ def plotCounts(plot_num, all_counts, save_fig, plot_folder):
 
 def _getFilteredCounts(csv_files, query, var_type="str"):
 
-    #non-str var types not supported yet.
-
     parts = query.split(" ")
     col = parts[0]
-    comparison_operator = parts[1] # not supported yet
+    comparison_operator = parts[1]
     val = parts[2]
+    if var_type == "int":
+        var = int(parts[2])
+    if var_type == "float":
+        var = float(parts[2])
 
     all_counts = []
     for file in csv_files:
         df = pd.read_csv(file)
-        df2 = df[df[col] == val]
-        source_counts = df2['source'].value_counts()
+
+        if comparison_operator == "==":
+            df = df[df[col] == val]
+        elif comparison_operator == ">":
+            df = df[df[col] > val]
+        elif comparison_operator == "<":
+            df = df[df[col] < val]
+        else:
+            print(f"ERROR: unsupported comparison operator {comparison_operator} in _getFilteredCounts.", file=sys.stderr)
+            sys.exit()
+
+        source_counts = df['source'].value_counts()
         all_counts.append(source_counts)
+
     return all_counts
 
 
