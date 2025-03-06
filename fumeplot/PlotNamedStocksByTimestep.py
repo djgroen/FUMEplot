@@ -136,7 +136,7 @@ def animateLocationHistogram(outdir, plot_num, loc_index, sim_index, data_index,
     if save_fig:
        ani.save(filename=plot_folder+'/'+str(loc_names[loc_index])+'_Histogram.gif', writer="pillow")
 
-def animateLocationViolins(outdir, plot_num, sim_indices, data_indices, loc_names, y_label, save_fig=False, plot_folder=None):    
+def animateLocationViolins(outdir, plot_num, i, sim_indices, data_indices, loc_names, y_label, save_fig=False, plot_folder=None):    
     ensembleSize = 0
     maxPop = 0
     dfFull = []
@@ -244,8 +244,8 @@ def plotNamedStocksByTimestep(code, outdir, plot_type, FUMEheader):
             animateLocationHistogram(outdir, fi, i, sim_indices[i], data_indices[i], loc_names, y_label, save_fig=saving, plot_folder=plotfolder)
             fi += 1
 
-    if plot_type == "loc_violin_gif" or plot_type == "all":
-        animateLocationViolins(outdir, fi, sim_indices, data_indices, loc_names, y_label, save_fig=saving, plot_folder=plotfolder)
+        if plot_type == "loc_violin_gif" or plot_type == "all":
+            animateLocationViolins(outdir, fi, i, sim_indices, data_indices, loc_names, y_label, save_fig=saving, plot_folder=plotfolder)
 
     plt.show()
 
@@ -266,3 +266,8 @@ if __name__ == "__main__":
    
     FUMEheader = ReadHeaders.ReadOutHeaders(outdir, mode=code)
     plotNamedStocksByTimestep(code, outdir, plot_type, FUMEheader)
+
+
+# ISSUES:
+# - some violin plots have all the ticks on the x axis at the sam locations
+# - save the plots as a single pdf in a folder
