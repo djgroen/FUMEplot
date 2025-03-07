@@ -95,9 +95,9 @@ if __name__ == "__main__":
     if plot_type == "source_hist" or plot_type == "all":
         plotSourceHist(outdir, save_fig=saving, plot_folder=plotfolder)
 
-    
-
-    
     # Show plot
     plt.show()
 
+
+# ISSUES:
+# - Flee and Facs require _agentlog folders to be present
