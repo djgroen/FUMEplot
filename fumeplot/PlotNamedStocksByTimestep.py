@@ -269,5 +269,7 @@ if __name__ == "__main__":
 
 
 # ISSUES:
-# - some violin plots have all the ticks on the x axis at the sam locations
+# - some violin plots have all the ticks on the x axis at the sam locations:
+#     - in plotLocation() the x axis size mismatch in dfTest 
+ 
 # - save the plots as a single pdf in a folder
