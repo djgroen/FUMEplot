@@ -1,0 +1,6 @@
+#NamedStocksByTimestep:
+#  modes: ["loc_lines"]
+
+NamedSingleByTimestep:
+  modes: ["loc_lines"]
+  filters: ["gender == m","gender == f"]

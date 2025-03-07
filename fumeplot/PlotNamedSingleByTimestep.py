@@ -29,14 +29,46 @@ def plotCounts(plot_num, all_counts, save_fig, plot_folder):
         plt.savefig(plot_folder+'/EntriesBySource.png')
 
 
-def plotSourceHist(outdir, save_fig=False, plot_folder=None):
+
+def _getFilteredCounts(csv_files, query, var_type="str"):
+
+    parts = query.split(" ")
+    col = parts[0]
+    comparison_operator = parts[1]
+    val = parts[2]
+    if var_type == "int":
+        var = int(parts[2])
+    if var_type == "float":
+        var = float(parts[2])
+
+    all_counts = []
+    for file in csv_files:
+        df = pd.read_csv(file)
+
+        if comparison_operator == "==":
+            df = df[df[col] == val]
+        elif comparison_operator == ">":
+            df = df[df[col] > val]
+        elif comparison_operator == "<":
+            df = df[df[col] < val]
+        else:
+            print(f"ERROR: unsupported comparison operator {comparison_operator} in _getFilteredCounts.", file=sys.stderr)
+            sys.exit()
+
+        source_counts = df['source'].value_counts()
+        all_counts.append(source_counts)
+
+    return all_counts
+
+
+def plotSourceHist(outdirs, filters, save_fig=False, plot_folder=None):
     
     # Read and aggregate data from multiple CSV files
     all_counts = []
     
     csv_files = []
-    for name in os.listdir(outdir):
-        csv_files.append(f"{outdir}/{name}/migration.log")
+    for d in outdirs:
+        csv_files.append(f"{d}/migration.log")
 
     for file in csv_files:
         df = pd.read_csv(file)
@@ -45,28 +77,16 @@ def plotSourceHist(outdir, save_fig=False, plot_folder=None):
    
     plotCounts(0, all_counts, save_fig, plot_folder)
 
-    all_counts = []
-    for file in csv_files:
-        df = pd.read_csv(file)
-        df2 = df[df['gender'] == 'f']
-        source_counts = df2['source'].value_counts()
-        all_counts.append(source_counts)
-
-    plotCounts(1, all_counts, save_fig, plot_folder)
-
-    all_counts = []
-    for file in csv_files:
-        df = pd.read_csv(file)
-        df2 = df[df['gender'] == 'm']
-        source_counts = df2['source'].value_counts()
-        all_counts.append(source_counts)
-
-    plotCounts(2, all_counts, save_fig, plot_folder)
+    i = 1
+    for f in filters:
+        all_counts = _getFilteredCounts(csv_files, f)
+        plotCounts(i, all_counts, save_fig, plot_folder)
+        i += 1
 
     plt.show()
     
-def plotNamedSingleByTimestep(code, outdir, plot_type, FUMEheader):
-    plotSourceHist(outdir, save_fig=False, plot_folder=None)
+def plotNamedSingleByTimestep(code, outdir, plot_type, FUMEheader, filters=[]):
+    plotSourceHist(outdir, filters, save_fig=False, plot_folder=None)
 
 
 
@@ -83,7 +103,9 @@ if __name__ == "__main__":
 
     outdir = f"../sample_{code}_agentlog"
 
-    headers = ReadHeaders.ReadMovelogHeaders(outdir, mode=code)
+    outdirs = ReadHeaders.GetOutDirs(outdir)
+
+    headers = ReadHeaders.ReadMovelogHeaders(outdirs, mode=code)
 
     ensembleSize = 0
     
@@ -93,7 +115,7 @@ if __name__ == "__main__":
     
     fi=0
     if plot_type == "source_hist" or plot_type == "all":
-        plotSourceHist(outdir, save_fig=saving, plot_folder=plotfolder)
+        plotSourceHist(outdirs, save_fig=saving, plot_folder=plotfolder)
 
     # Show plot
     plt.show()
