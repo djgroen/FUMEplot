@@ -24,15 +24,17 @@ def plotLocation(outdirs, plot_num, loc_index, sim_index, data_index, loc_names,
     
     for i in range(ensembleSize):
         plt.plot(dfTest[i],'k', alpha=0.2)
+        print(f"size of dfTest[i]: {len(dfTest[i])}") #debugging
     plt.plot(np.mean(dfTest,axis=0),'maroon',label='ensemble mean')
     if data_index > 0:
         plt.plot(df.iloc[:, data_index],'b-', label='UN Data')
+        print(f"sizes of dfTest and data: {len(dfTest[0])}, {len(df.iloc[:, data_index])}") #debugging
     plt.legend()
     plt.xlabel('Day')
     plt.ylabel(y_label)
     plt.title(str(loc_names[loc_index]))
     
-    if combine_plots_pdf is not None:
+    if combine_plots_pdf:
         combine_plots_pdf.savefig(fig)
     if save_fig:
         plt.savefig(plot_folder+'/'+str(loc_names[loc_index])+'_Ensemble.png')
@@ -61,7 +63,7 @@ def plotLocationSTDBound(outdirs, plot_num, loc_index, sim_index, data_index, lo
     plt.ylabel(y_label)
     plt.title(str(loc_names[loc_index]))
      
-    if combine_plots_pdf is not None:
+    if combine_plots_pdf:
         combine_plots_pdf.savefig(fig)
     if save_fig:
         plt.savefig(plot_folder+'/'+str(loc_names[loc_index])+'_std.png')
@@ -94,7 +96,7 @@ def plotLocationDifferences(outdirs, plot_num, loc_index, sim_index, data_index,
     plt.ylabel('Difference (sim - observed)')
     plt.title(str(loc_names[loc_index]))
  
-    if combine_plots_pdf is not None:
+    if combine_plots_pdf:
         combine_plots_pdf.savefig(fig)
     if save_fig:
         plt.savefig(plot_folder+'/'+str(loc_names[loc_index])+'_Differences.png')
@@ -237,7 +239,7 @@ def plotNamedStocksByTimestep(code, outdirs, plot_type, FUMEheader):
    
     fi = 0 #fig number
 
-    with PdfPages(os.path.join(output, "camps_plots.pdf")) if combine_plots_pdf else nullcontext() as pdf_pages:
+    with PdfPages(os.path.join(plotfolder, "combined_time_plots.pdf")) if combine_plots_pdf else nullcontext() as pdf_pages:
 
         for i in range(len(sim_indices)):
             if plot_type == "loc_lines" or plot_type == "all":
