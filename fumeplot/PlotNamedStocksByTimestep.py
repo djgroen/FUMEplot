@@ -24,11 +24,11 @@ def plotLocation(outdirs, plot_num, loc_index, sim_index, data_index, loc_names,
     
     for i in range(ensembleSize):
         plt.plot(dfTest[i],'k', alpha=0.2)
-        print(f"size of dfTest[i]: {len(dfTest[i])}") #debugging
+        #print(f"size of dfTest[i]: {len(dfTest[i])}") #debugging
     plt.plot(np.mean(dfTest,axis=0),'maroon',label='ensemble mean')
     if data_index > 0:
         plt.plot(df.iloc[:, data_index],'b-', label='UN Data')
-        print(f"sizes of dfTest and data: {len(dfTest[0])}, {len(df.iloc[:, data_index])}") #debugging
+        #print(f"sizes of dfTest and data: {len(dfTest[0])}, {len(df.iloc[:, data_index])}") #debugging
     plt.legend()
     plt.xlabel('Day')
     plt.ylabel(y_label)
@@ -38,6 +38,8 @@ def plotLocation(outdirs, plot_num, loc_index, sim_index, data_index, loc_names,
         combine_plots_pdf.savefig(fig)
     if save_fig:
         plt.savefig(plot_folder+'/'+str(loc_names[loc_index])+'_Ensemble.png')
+
+    plt.close(fig)
 
 def plotLocationSTDBound(outdirs, plot_num, loc_index, sim_index, data_index, loc_names, y_label, save_fig=False, plot_folder=None, combine_plots_pdf=False):
     ensembleSize = 0
@@ -68,6 +70,7 @@ def plotLocationSTDBound(outdirs, plot_num, loc_index, sim_index, data_index, lo
     if save_fig:
         plt.savefig(plot_folder+'/'+str(loc_names[loc_index])+'_std.png')
 
+    plt.close(fig)
 
 def plotLocationDifferences(outdirs, plot_num, loc_index, sim_index, data_index, loc_names, save_fig=False, plot_folder=None, combine_plots_pdf=False):    
     ensembleSize = 0
@@ -147,6 +150,8 @@ def animateLocationHistogram(outdirs, plot_num, loc_index, sim_index, data_index
     if save_fig:
        ani.save(filename=plot_folder+'/'+str(loc_names[loc_index])+'_Histogram.gif', writer="pillow")
 
+    plt.close(fig)
+
 def animateLocationViolins(outdirs, plot_num, i, sim_indices, data_indices, loc_names, y_label, save_fig=False, plot_folder=None, combine_plots_pdf=False):    
     ensembleSize = 0
     maxPop = 0
@@ -220,6 +225,7 @@ def animateLocationViolins(outdirs, plot_num, i, sim_indices, data_indices, loc_
     if save_fig:
        ani.save(filename=plot_folder+'/Overall_Violin.gif', writer="pillow")
 
+    plt.close(fig)
 
 #main plotting script
 def plotNamedStocksByTimestep(code, outdirs, plot_type, FUMEheader):
@@ -284,6 +290,7 @@ if __name__ == "__main__":
 
 # ISSUES:
 # - some violin plots have all the ticks on the x axis at the sam locations:
-#     - in plotLocation() the x axis size mismatch in dfTest 
+#     - in plotLocation() the x axis size mismatch in dfTest and df
  
-# - save the plots as a single pdf in a folder
+# - save the plots as a single pdf in a folder:
+#       split histograms and violin plots into separate frames as save in a PDF
