@@ -7,7 +7,10 @@ import sys
 from pathlib import Path
 import matplotlib.patches as mpatches
 
-def plotLocation(outdirs, plot_num, loc_index, sim_index, data_index, loc_names, y_label, save_fig=False, plot_folder=None):    
+from matplotlib.backends.backend_pdf import PdfPages
+from contextlib import nullcontext
+
+def plotLocation(outdirs, plot_num, loc_index, sim_index, data_index, loc_names, y_label, save_fig=False, plot_folder=None, combine_plots_pdf=False):    
     ensembleSize = 0
     dfTest = []
     # loop through each ensemble job extracting sim data and assigning to df for each location
@@ -17,7 +20,7 @@ def plotLocation(outdirs, plot_num, loc_index, sim_index, data_index, loc_names,
         ensembleSize += 1
     
     # plot all waveforms
-    plt.figure(plot_num+1)
+    fig = plt.figure(plot_num+1)
     
     for i in range(ensembleSize):
         plt.plot(dfTest[i],'k', alpha=0.2)
@@ -29,10 +32,12 @@ def plotLocation(outdirs, plot_num, loc_index, sim_index, data_index, loc_names,
     plt.ylabel(y_label)
     plt.title(str(loc_names[loc_index]))
     
+    if combine_plots_pdf is not None:
+        combine_plots_pdf.savefig(fig)
     if save_fig:
         plt.savefig(plot_folder+'/'+str(loc_names[loc_index])+'_Ensemble.png')
 
-def plotLocationSTDBound(outdirs, plot_num, loc_index, sim_index, data_index, loc_names, y_label, save_fig=False, plot_folder=None):
+def plotLocationSTDBound(outdirs, plot_num, loc_index, sim_index, data_index, loc_names, y_label, save_fig=False, plot_folder=None, combine_plots_pdf=False):
     ensembleSize = 0
     dfTest = []
     # loop through each ensemble job extracting sim data and assigning to df for each location
@@ -42,7 +47,7 @@ def plotLocationSTDBound(outdirs, plot_num, loc_index, sim_index, data_index, lo
         ensembleSize += 1
     
     # plot all waveforms
-    plt.figure(plot_num+1)
+    fig = plt.figure(plot_num+1)
     
     plt.plot(np.mean(dfTest,axis=0),'maroon',label='ensemble mean')
     plt.fill_between(np.linspace(0,len(dfTest[0]),len(dfTest[0])), 
@@ -56,11 +61,13 @@ def plotLocationSTDBound(outdirs, plot_num, loc_index, sim_index, data_index, lo
     plt.ylabel(y_label)
     plt.title(str(loc_names[loc_index]))
      
+    if combine_plots_pdf is not None:
+        combine_plots_pdf.savefig(fig)
     if save_fig:
         plt.savefig(plot_folder+'/'+str(loc_names[loc_index])+'_std.png')
 
 
-def plotLocationDifferences(outdirs, plot_num, loc_index, sim_index, data_index, loc_names, save_fig=False, plot_folder=None):    
+def plotLocationDifferences(outdirs, plot_num, loc_index, sim_index, data_index, loc_names, save_fig=False, plot_folder=None, combine_plots_pdf=False):    
     ensembleSize = 0
     dfTest = []
     # loop through each ensemble job extracting sim data and assigning to df for each location
@@ -76,7 +83,7 @@ def plotLocationDifferences(outdirs, plot_num, loc_index, sim_index, data_index,
              f'ARD = {ard:.2f}')
     
     # plot all waveforms
-    plt.figure(plot_num+1)
+    fig = plt.figure(plot_num+1)
     
     plt.plot(np.mean(dfTest,axis=0) - df.iloc[:, data_index],'black')
         
@@ -87,10 +94,12 @@ def plotLocationDifferences(outdirs, plot_num, loc_index, sim_index, data_index,
     plt.ylabel('Difference (sim - observed)')
     plt.title(str(loc_names[loc_index]))
  
+    if combine_plots_pdf is not None:
+        combine_plots_pdf.savefig(fig)
     if save_fig:
         plt.savefig(plot_folder+'/'+str(loc_names[loc_index])+'_Differences.png')
 
-def animateLocationHistogram(outdirs, plot_num, loc_index, sim_index, data_index, loc_names, x_label, save_fig=False, plot_folder=None):    
+def animateLocationHistogram(outdirs, plot_num, loc_index, sim_index, data_index, loc_names, x_label, save_fig=False, plot_folder=None, combine_plots_pdf=False):    
     ensembleSize = 0
     maxPop = 0
     dfTest = []
@@ -136,7 +145,7 @@ def animateLocationHistogram(outdirs, plot_num, loc_index, sim_index, data_index
     if save_fig:
        ani.save(filename=plot_folder+'/'+str(loc_names[loc_index])+'_Histogram.gif', writer="pillow")
 
-def animateLocationViolins(outdirs, plot_num, i, sim_indices, data_indices, loc_names, y_label, save_fig=False, plot_folder=None):    
+def animateLocationViolins(outdirs, plot_num, i, sim_indices, data_indices, loc_names, y_label, save_fig=False, plot_folder=None, combine_plots_pdf=False):    
     ensembleSize = 0
     maxPop = 0
     dfFull = []
@@ -218,6 +227,7 @@ def plotNamedStocksByTimestep(code, outdirs, plot_type, FUMEheader):
     data_indices = FUMEheader.data_indices
     loc_names= FUMEheader.loc_names
     y_label = FUMEheader.y_label
+    combine_plots_pdf = FUMEheader.combine_plots_pdf
 
     ensembleSize = 0
     
@@ -227,27 +237,30 @@ def plotNamedStocksByTimestep(code, outdirs, plot_type, FUMEheader):
    
     fi = 0 #fig number
 
-    for i in range(len(sim_indices)):
-        if plot_type == "loc_lines" or plot_type == "all":
-            plotLocation(outdirs, fi, i, sim_indices[i], data_indices[i], loc_names, y_label, save_fig=saving, plot_folder=plotfolder)
-            fi += 1
-        if plot_type == "loc_stdev" or plot_type == "all":
-            plotLocationSTDBound(outdirs, fi, i, sim_indices[i], data_indices[i], loc_names, y_label, save_fig=saving, plot_folder=plotfolder)
-            fi += 1
-       
-        if data_indices[i]>0:
-            if plot_type == "loc_diff" or plot_type == "all":
-                plotLocationDifferences(outdirs, fi, i, sim_indices[i], data_indices[i], loc_names, save_fig=saving, plot_folder=plotfolder)
+    with PdfPages(os.path.join(output, "camps_plots.pdf")) if combine_plots_pdf else nullcontext() as pdf_pages:
+
+        for i in range(len(sim_indices)):
+            if plot_type == "loc_lines" or plot_type == "all":
+                plotLocation(outdirs, fi, i, sim_indices[i], data_indices[i], loc_names, y_label, save_fig=saving, plot_folder=plotfolder, combine_plots_pdf=pdf_pages)
                 fi += 1
- 
-        if plot_type == "loc_hist_gif" or plot_type == "all":
-            animateLocationHistogram(outdirs, fi, i, sim_indices[i], data_indices[i], loc_names, y_label, save_fig=saving, plot_folder=plotfolder)
-            fi += 1
+            if plot_type == "loc_stdev" or plot_type == "all":
+                plotLocationSTDBound(outdirs, fi, i, sim_indices[i], data_indices[i], loc_names, y_label, save_fig=saving, plot_folder=plotfolder, combine_plots_pdf=pdf_pages)
+                fi += 1
+        
+            if data_indices[i]>0:
+                if plot_type == "loc_diff" or plot_type == "all":
+                    plotLocationDifferences(outdirs, fi, i, sim_indices[i], data_indices[i], loc_names, save_fig=saving, plot_folder=plotfolder, combine_plots_pdf=pdf_pages)
+                    fi += 1
+    
+            if plot_type == "loc_hist_gif" or plot_type == "all":
+                animateLocationHistogram(outdirs, fi, i, sim_indices[i], data_indices[i], loc_names, y_label, save_fig=saving, plot_folder=plotfolder, combine_plots_pdf=pdf_pages)
+                fi += 1
 
-        if plot_type == "loc_violin_gif" or plot_type == "all":
-            animateLocationViolins(outdirs, fi, i, sim_indices, data_indices, loc_names, y_label, save_fig=saving, plot_folder=plotfolder)
+            if plot_type == "loc_violin_gif" or plot_type == "all":
+                animateLocationViolins(outdirs, fi, i, sim_indices, data_indices, loc_names, y_label, save_fig=saving, plot_folder=plotfolder, combine_plots_pdf=pdf_pages)
 
-    plt.show()
+    if not combine_plots_pdf:
+        plt.show()
 
 
 if __name__ == "__main__":

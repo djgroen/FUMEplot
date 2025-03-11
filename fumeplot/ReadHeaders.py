@@ -22,6 +22,7 @@ class FUMEheader:
     data_indices: list
     loc_names: list
     y_label: str = ""
+    combine_plots_pdf: bool = False
 
 
 def GetOutDirs(outdir):
