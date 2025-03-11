@@ -22,7 +22,7 @@ class FUMEheader:
     data_indices: list
     loc_names: list
     y_label: str = ""
-    combine_plots_pdf: bool = False
+    combine_plots_pdf: bool = True
 
 
 def GetOutDirs(outdir):
@@ -78,7 +78,7 @@ def ReadOutHeaders(outdirs, mode="flee"):
             sim_indices = [2,3,4,5,6,7,8,9]
             data_indices = [-1,-1,-1,-1,-1,-1,-1,-1]
             y_label = "# of occurrences"
-            return FUMEheader(headers, sim_indices, data_indices, loc_names, y_label)
+            return FUMEheader(headers, sim_indices, data_indices, loc_names, y_label, combine_plots_pdf=True)
         break 
     
     sim_indices = []
@@ -94,5 +94,5 @@ def ReadOutHeaders(outdirs, mode="flee"):
             data_indices.append(-1) #indicates no data.
     
     
-    return FUMEheader(headers, sim_indices, data_indices, loc_names, y_label)
+    return FUMEheader(headers, sim_indices, data_indices, loc_names, y_label, combine_plots_pdf=True)
 

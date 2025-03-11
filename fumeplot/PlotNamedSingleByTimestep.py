@@ -7,7 +7,10 @@ import sys
 from pathlib import Path
 import matplotlib.patches as mpatches
 
-def plotCounts(plot_num, all_counts, save_fig, plot_folder):
+from matplotlib.backends.backend_pdf import PdfPages
+from contextlib import nullcontext
+
+def plotCounts(plot_num, all_counts, save_fig, plot_folder, combine_plots_pdf):
     # Combine counts into a DataFrame, filling missing values with 0
     combined_counts = pd.DataFrame(all_counts).fillna(0)
 
@@ -16,7 +19,7 @@ def plotCounts(plot_num, all_counts, save_fig, plot_folder):
     std_counts = combined_counts.std()
 
         # Plot histogram with error bars
-    plt.figure(plot_num+1, figsize=(10, 6))
+    fig = plt.figure(plot_num+1, figsize=(10, 6))
     plt.bar(mean_counts.index, mean_counts.values, yerr=std_counts.values, color='skyblue', capsize=5)
 
     # Labels and title
@@ -25,6 +28,9 @@ def plotCounts(plot_num, all_counts, save_fig, plot_folder):
     plt.title('Histogram of Entries Grouped by Source')
     plt.xticks(rotation=45)
 
+    if combine_plots_pdf:
+        combine_plots_pdf.savefig(fig)
+        print(f"Saved plot {plot_num} to PDF.")
     if save_fig:
         plt.savefig(plot_folder+'/EntriesBySource.png')
 
@@ -61,8 +67,8 @@ def _getFilteredCounts(csv_files, query, var_type="str"):
     return all_counts
 
 
-def plotSourceHist(outdirs, filters, save_fig=False, plot_folder=None):
-    
+def plotSourceHist(outdirs, filters, save_fig=False, plot_folder=None, combine_plots_pdf=False):
+
     # Read and aggregate data from multiple CSV files
     all_counts = []
     
@@ -74,19 +80,22 @@ def plotSourceHist(outdirs, filters, save_fig=False, plot_folder=None):
         df = pd.read_csv(file)
         source_counts = df['source'].value_counts()
         all_counts.append(source_counts)
+
+    with PdfPages(os.path.join(plot_folder, "camps_plots.pdf")) if combine_plots_pdf else nullcontext() as pdf_pages:    
    
-    plotCounts(0, all_counts, save_fig, plot_folder)
+        plotCounts(0, all_counts, save_fig, plot_folder, combine_plots_pdf=pdf_pages)
 
-    i = 1
-    for f in filters:
-        all_counts = _getFilteredCounts(csv_files, f)
-        plotCounts(i, all_counts, save_fig, plot_folder)
-        i += 1
+        i = 1
+        for f in filters:
+            all_counts = _getFilteredCounts(csv_files, f)
+            plotCounts(i, all_counts, save_fig, plot_folder, combine_plots_pdf=pdf_pages)
+            i += 1
 
-    plt.show()
+    if not combine_plots_pdf:
+        plt.show()
     
 def plotNamedSingleByTimestep(code, outdir, plot_type, FUMEheader, filters=[]):
-    plotSourceHist(outdir, filters, save_fig=False, plot_folder=None)
+    plotSourceHist(outdir, filters, save_fig=False, plot_folder=None, combine_plots_pdf=FUMEheader.combine_plots_pdf)
 
 
 
@@ -107,7 +116,8 @@ if __name__ == "__main__":
 
     headers = ReadHeaders.ReadMovelogHeaders(outdirs, mode=code)
 
-    ensembleSize = 0
+    # ensembleSize = 0
+    ensembleSize = 8
     
     saving=True
     plotfolder='../../EnsemblePlots/'+code+'Plots'
@@ -115,7 +125,7 @@ if __name__ == "__main__":
     
     fi=0
     if plot_type == "source_hist" or plot_type == "all":
-        plotSourceHist(outdirs, save_fig=saving, plot_folder=plotfolder)
+        plotSourceHist(outdirs, filters=[], save_fig=saving, plot_folder=plotfolder, combine_plots_pdf=True)
 
     # Show plot
     plt.show()
