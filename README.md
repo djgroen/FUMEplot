@@ -8,20 +8,20 @@ For testing try (while in "fumeplot" directory):
 python3 PlotEnsembleLines.py
 ``` -->
 ```
-python3 PlotNamedSingleByTimestep.py 
+python3 PlotNamedStocksByTimestep.py 
 ```
 
 Uses default, which is "flee".
-You can also use "facs" or "homecoming" as an argument.
+You can also use "facs" or "homecoming" as an argument:
 
 ```
-python3 PlotNamedSingleByTimestep.py flee
+python3 PlotNamedStocksByTimestep.py flee
 ```
 ```
-python3 PlotNamedSingleByTimestep.py facs
+python3 PlotNamedStocksByTimestep.py facs
 ```
 ```
-python3 PlotNamedSingleByTimestep.py homecoming
+python3 PlotNamedStocksByTimestep.py homecoming
 ```
 
 <!-- ```
@@ -31,6 +31,13 @@ python3 PlotEnsembleLines.py flee
 ```
 python3 PlotEnsembleLines.py homecoming
 ``` -->
+This will create plots of quantities evolution with their stadard deviation uncertainties, individual runs trajectories, and histogram animation for each data denomination, as well as a violin plot animation for combined data.
+
+
+To create a single bar plot with uncertainties for all data denominations run:
+```
+python PlotNamedSingleByStep.by flee
+```
 
 ## usage with FabSim3 (fully automated)
 
