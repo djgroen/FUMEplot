@@ -81,7 +81,7 @@ def plotSourceHist(outdirs, filters, save_fig=False, plot_folder=None, combine_p
         source_counts = df['source'].value_counts()
         all_counts.append(source_counts)
 
-    with PdfPages(os.path.join(plot_folder, "camps_plots.pdf")) if combine_plots_pdf else nullcontext() as pdf_pages:    
+    with PdfPages(os.path.join(plot_folder, "combined_bar_plots.pdf")) if combine_plots_pdf else nullcontext() as pdf_pages:    
    
         plotCounts(0, all_counts, save_fig, plot_folder, combine_plots_pdf=pdf_pages)
 
@@ -133,3 +133,4 @@ if __name__ == "__main__":
 
 # ISSUES:
 # - Flee and Facs require _agentlog folders to be present
+# - all ensemble output outputs have to be in RUNS folder
