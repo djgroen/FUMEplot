@@ -18,7 +18,7 @@ def plotCounts(plot_num, all_counts, save_fig, plot_folder, combine_plots_pdf):
     mean_counts = combined_counts.mean()
     std_counts = combined_counts.std()
 
-        # Plot histogram with error bars
+    # Plot histogram with error bars
     fig = plt.figure(plot_num+1, figsize=(10, 6))
     plt.bar(mean_counts.index, mean_counts.values, yerr=std_counts.values, color='skyblue', capsize=5)
 
