@@ -133,4 +133,3 @@ if __name__ == "__main__":
 
 # ISSUES:
 # - Flee and Facs require _agentlog folders to be present
-# - all ensemble output outputs have to be in RUNS folder

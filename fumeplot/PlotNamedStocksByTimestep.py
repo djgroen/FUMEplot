@@ -289,8 +289,6 @@ if __name__ == "__main__":
 
 
 # ISSUES:
-# - some violin plots have all the ticks on the x axis at the sam locations:
-#     - in plotLocation() the x axis size mismatch in dfTest and df
  
 # - save the plots as a single pdf in a folder:
 #       split histograms and violin plots into separate frames as save in a PDF
