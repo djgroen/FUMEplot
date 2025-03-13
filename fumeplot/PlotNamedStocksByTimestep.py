@@ -10,6 +10,14 @@ import matplotlib.patches as mpatches
 from matplotlib.backends.backend_pdf import PdfPages
 from contextlib import nullcontext
 
+
+def _formatLabels(labels):
+
+    # Capitalize and replace underscores with spaces
+    labels =  [label.replace('_', ' ').title() for label in labels]
+
+    return labels
+
 def plotLocation(outdirs, plot_num, loc_index, sim_index, data_index, loc_names, y_label, save_fig=False, plot_folder=None, combine_plots_pdf=False):    
     ensembleSize = 0
     dfTest = []
@@ -33,6 +41,7 @@ def plotLocation(outdirs, plot_num, loc_index, sim_index, data_index, loc_names,
     plt.xlabel('Day')
     plt.ylabel(y_label)
     plt.title(str(loc_names[loc_index]))
+    plt.tight_layout()
     
     if combine_plots_pdf:
         combine_plots_pdf.savefig(fig)
@@ -64,6 +73,7 @@ def plotLocationSTDBound(outdirs, plot_num, loc_index, sim_index, data_index, lo
     plt.xlabel('Day')
     plt.ylabel(y_label)
     plt.title(str(loc_names[loc_index]))
+    plt.tight_layout()
      
     if combine_plots_pdf:
         combine_plots_pdf.savefig(fig)
@@ -104,6 +114,14 @@ def plotLocationDifferences(outdirs, plot_num, loc_index, sim_index, data_index,
     if save_fig:
         plt.savefig(plot_folder+'/'+str(loc_names[loc_index])+'_Differences.png')
 
+def adjacent_values(vals, q1, q3):
+    upper_adjacent_value = q3 + (q3 - q1) * 1.5
+    upper_adjacent_value = np.clip(upper_adjacent_value, q3, vals[-1])
+
+    lower_adjacent_value = q1 - (q3 - q1) * 1.5
+    lower_adjacent_value = np.clip(lower_adjacent_value, vals[0], q1)
+    return lower_adjacent_value, upper_adjacent_value
+
 def animateLocationHistogram(outdirs, plot_num, loc_index, sim_index, data_index, loc_names, x_label, save_fig=False, plot_folder=None, combine_plots_pdf=False):    
     ensembleSize = 0
     maxPop = 0
@@ -136,7 +154,9 @@ def animateLocationHistogram(outdirs, plot_num, loc_index, sim_index, data_index
         
     #fig = plt.figure(plot_num+1)
     fig, ax = plt.subplots()
+
     ax.hist([item[0] for item in dfTest], bins=10, color='c', edgecolor='k', alpha=0.65, label='Ensemble data')
+
     if data_index > 0:
         ax.axvline(df.iloc[0, data_index], color='k', linestyle='dashed', linewidth=1, label='UN data')
     ax.set_title(str(loc_names[loc_index] + ' - Day '+ str(0)))
@@ -180,14 +200,32 @@ def animateLocationViolins(outdirs, plot_num, i, sim_indices, data_indices, loc_
         locData=[]
         for j in range(ensembleSize):
             locData.append([item[i] for item in dfFull[j]])
+
         locData = [list(k) for k in zip(*locData)]
-        hist = ax.violinplot(locData, showmeans=False, showmedians=True)
+
+        quartile1, medians, quartile3 = np.percentile(locData, [25, 50, 75], axis=1)
+        whiskers = np.array([
+            adjacent_values(sorted_array, q1, q3)
+            for sorted_array, q1, q3 in zip(locData, quartile1, quartile3)])
+        whiskersMin, whiskersMax = whiskers[:, 0], whiskers[:, 1]
+
+        hist = ax.violinplot(
+            locData, 
+            showmeans=False, 
+            showmedians=True, 
+            showextrema=False,
+            )
+
         if dataAvailable:
             ax.scatter([y + 1 for y in range(len(sim_indices))], dataValues.iloc[i].values, color='r', label='UN data')
+            ax.vlines([y + 1 for y in range(len(sim_indices))], quartile1, quartile3, color='k', linestyle='-', lw=1)
+            #ax.vlines([y + 1 for y in range(len(sim_indices))], whiskersMin, whiskersMax, color='k', linestyle='-', lw=1)
+
             # where some data has already been plotted to ax
             handles, labels = ax.get_legend_handles_labels()
             handles.append(mpatches.Patch(color='C0', label='Simulations')) 
             ax.legend(handles=handles)
+
         ax.set_title(f"{y_label} - Day {i}")
         ax.set(xlabel='Category', ylabel='Observations')
         ax.yaxis.grid(True)
@@ -204,10 +242,20 @@ def animateLocationViolins(outdirs, plot_num, i, sim_indices, data_indices, loc_
     for j in range(ensembleSize):
         locData.append([item[0] for item in dfFull[j]])
     locData = [list(i) for i in zip(*locData)]
+
+    quartile1, medians, quartile3 = np.percentile(locData, [25, 50, 75], axis=1)
+    whiskers = np.array([
+        adjacent_values(sorted_array, q1, q3)
+        for sorted_array, q1, q3 in zip(locData, quartile1, quartile3)])
+    whiskersMin, whiskersMax = whiskers[:, 0], whiskers[:, 1]
+
     ax.violinplot(locData, showmeans=False, showmedians=True)
+
     if dataAvailable:
         ax.scatter([y + 1 for y in range(len(sim_indices))], dataValues.iloc[0].values, color='r', label='UN data')
-        
+        ax.vlines([y + 1 for y in range(len(sim_indices))], quartile1, quartile3, color='k', linestyle='-', lw=1)
+#ax.vlines([y + 1 for y in range(len(sim_indices))], whiskersMin, whiskersMax, color='k', linestyle='-', lw=1)
+
         # where some data has already been plotted to ax
         handles, labels = ax.get_legend_handles_labels()
         handles.append(mpatches.Patch(color='C1', label='Simulations')) 
@@ -292,3 +340,5 @@ if __name__ == "__main__":
  
 # - save the plots as a single pdf in a folder:
 #       split histograms and violin plots into separate frames as save in a PDF
+
+# histogram: change to log scale (break the Y axis?)
