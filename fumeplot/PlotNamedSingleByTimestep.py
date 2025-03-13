@@ -6,6 +6,7 @@ import os
 import sys
 from pathlib import Path
 import matplotlib.patches as mpatches
+import matplotlib.lines as mlines
 
 from matplotlib.backends.backend_pdf import PdfPages
 from contextlib import nullcontext
@@ -59,10 +60,11 @@ def plotCounts(plot_num, all_counts, save_fig, plot_folder, combine_plots_pdf):
 
     # Labels and title
     plt.legend(
-        [mpatches.Patch(color='black', label='Mean'), 
-         mpatches.Patch(color='blue', label='Median'), 
-         mpatches.Patch(color='skyblue', label='Q1-Q3'),], 
-        ['Mean', 'Median', '25th-75th percentile'])
+        [mlines.Line2D([], [], color='black', linestyle='dashed', label='Mean'),
+         mlines.Line2D([], [], color='blue', label='Median'),
+         mpatches.Patch(color='skyblue', label='Q1-Q3'),
+         mlines.Line2D([], [], marker='o', color='w', markerfacecolor='blue', markersize=5, label='Outliers')], 
+        ['Mean', 'Median', '25th-75th percentile', 'Outliers'],)
     plt.xlabel('Source Location')
     plt.ylabel('Number of Entries')
     plt.title('Boxplot of Entries Grouped by Source')
