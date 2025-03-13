@@ -65,19 +65,20 @@ def ReadOutHeaders(outdirs, mode="flee"):
 
         if mode == "flee":
             numLocs = int((df.shape[1]-8)/3)
-            y_label = "# of asylum seekers / unrecognized refugees"
+            y_label = "# of Asylum Seekers / Unrecognized Refugees"
 
         if mode == "homecoming":
             numLocs = len(headers)-1
             loc_names = headers[1:]
-            y_label = "# of refugees"
+            loc_names = [label.replace('_', ' ').title() for label in headers[1:]]
+            y_label = "# of Refugees"
 
         if mode == "facs":
             #Typical FACS header: time,date,susceptible,exposed,infectious,recovered,dead,immune,num infections today,num hospitalisations today,hospital bed occupancy,num hospitalisations today (data),cum num hospitalisations today,cum num infections today
-            loc_names = ["susceptible","exposed","infectious","recovered","dead","immune","num infections today","num hospitalisations today"]
+            loc_names = ["Susceptible","Exposed","Infectious","Recovered","Dead","Immune","# Infections Today","# Hospitalisations Today"]
             sim_indices = [2,3,4,5,6,7,8,9]
             data_indices = [-1,-1,-1,-1,-1,-1,-1,-1]
-            y_label = "# of occurrences"
+            y_label = "# of Occurrences"
             return FUMEheader(headers, sim_indices, data_indices, loc_names, y_label, combine_plots_pdf=True)
         break 
     

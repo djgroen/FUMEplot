@@ -25,7 +25,7 @@ def plotLocation(outdirs, plot_num, loc_index, sim_index, data_index, loc_names,
     for i in range(ensembleSize):
         plt.plot(dfTest[i],'k', alpha=0.2)
         #print(f"size of dfTest[i]: {len(dfTest[i])}") #debugging
-    plt.plot(np.mean(dfTest,axis=0),'maroon',label='ensemble mean')
+    plt.plot(np.mean(dfTest,axis=0),'maroon',label='Ensemble Mean')
     if data_index > 0:
         plt.plot(df.iloc[:, data_index],'b-', label='UN Data')
         #print(f"sizes of dfTest and data: {len(dfTest[0])}, {len(df.iloc[:, data_index])}") #debugging
@@ -33,11 +33,12 @@ def plotLocation(outdirs, plot_num, loc_index, sim_index, data_index, loc_names,
     plt.xlabel('Day')
     plt.ylabel(y_label)
     plt.title(str(loc_names[loc_index]))
+    plt.tight_layout()
     
     if combine_plots_pdf:
         combine_plots_pdf.savefig(fig)
     if save_fig:
-        plt.savefig(plot_folder+'/'+str(loc_names[loc_index])+'_Ensemble.png')
+        plt.savefig(plot_folder+'/'+str(loc_names[loc_index]).replace(" ", "").replace("#", "Num")+'_Ensemble.png')
 
     plt.close(fig)
 
@@ -53,22 +54,23 @@ def plotLocationSTDBound(outdirs, plot_num, loc_index, sim_index, data_index, lo
     # plot all waveforms
     fig = plt.figure(plot_num+1)
     
-    plt.plot(np.mean(dfTest,axis=0),'maroon',label='ensemble mean')
+    plt.plot(np.mean(dfTest,axis=0),'maroon',label='Ensemble Mean')
     plt.fill_between(np.linspace(0,len(dfTest[0]),len(dfTest[0])), 
                                  np.mean(dfTest,axis=0) - np.std(dfTest,axis=0), 
                                  np.mean(dfTest,axis=0) + np.std(dfTest,axis=0), 
-                                 where=np.ones(len(dfTest[0])), alpha=0.3, color='maroon', label=r'mean $\pm$ 1 std')
+                                 where=np.ones(len(dfTest[0])), alpha=0.3, color='maroon', label=r'Mean $\pm$ 1 STD')
     if data_index > 0:
         plt.plot(df.iloc[:, data_index],'b-', label='UN Data')
     plt.legend()
     plt.xlabel('Day')
     plt.ylabel(y_label)
     plt.title(str(loc_names[loc_index]))
+    plt.tight_layout()
      
     if combine_plots_pdf:
         combine_plots_pdf.savefig(fig)
     if save_fig:
-        plt.savefig(plot_folder+'/'+str(loc_names[loc_index])+'_std.png')
+        plt.savefig(plot_folder+'/'+str(loc_names[loc_index]).replace(" ", "").replace("#", "Num")+'_std.png')
 
     plt.close(fig)
 
@@ -98,11 +100,12 @@ def plotLocationDifferences(outdirs, plot_num, loc_index, sim_index, data_index,
     plt.xlabel('Day')
     plt.ylabel('Difference (sim - observed)')
     plt.title(str(loc_names[loc_index]))
+    plt.tight_layout()
  
     if combine_plots_pdf:
         combine_plots_pdf.savefig(fig)
     if save_fig:
-        plt.savefig(plot_folder+'/'+str(loc_names[loc_index])+'_Differences.png')
+        plt.savefig(plot_folder+'/'+str(loc_names[loc_index]).replace(" ", "").replace("#", "Num")+'_Differences.png')
 
 def animateLocationHistogram(outdirs, plot_num, loc_index, sim_index, data_index, loc_names, x_label, save_fig=False, plot_folder=None, combine_plots_pdf=False):    
     ensembleSize = 0
@@ -122,9 +125,9 @@ def animateLocationHistogram(outdirs, plot_num, loc_index, sim_index, data_index
     
     def updatehist(i):
         ax.cla()
-        hist = ax.hist([item[i] for item in dfTest], bins=10, color='c', edgecolor='k', alpha=0.65, label='Ensemble data')
+        hist = ax.hist([item[i] for item in dfTest], bins=10, color='c', edgecolor='k', alpha=0.65, label='Ensemble Data')
         if data_index > 0:
-            data = ax.axvline(df.iloc[i, data_index], color='k', linestyle='dashed', linewidth=1, label='UN data')
+            data = ax.axvline(df.iloc[i, data_index], color='k', linestyle='dashed', linewidth=1, label='UN Data')
         ax.set_title(str(loc_names[loc_index] + ' - Day '+ str(i)))
         ax.set(xlim=[0, 1.1*maxPop], ylim=[0, ensembleSize], xlabel=x_label, ylabel='Ensemble Observations')
         #ax.set(ylim=[0, 10], xlabel='# Refugees', ylabel='Occurances')
@@ -136,9 +139,9 @@ def animateLocationHistogram(outdirs, plot_num, loc_index, sim_index, data_index
         
     #fig = plt.figure(plot_num+1)
     fig, ax = plt.subplots()
-    ax.hist([item[0] for item in dfTest], bins=10, color='c', edgecolor='k', alpha=0.65, label='Ensemble data')
+    ax.hist([item[0] for item in dfTest], bins=10, color='c', edgecolor='k', alpha=0.65, label='Ensemble Data')
     if data_index > 0:
-        ax.axvline(df.iloc[0, data_index], color='k', linestyle='dashed', linewidth=1, label='UN data')
+        ax.axvline(df.iloc[0, data_index], color='k', linestyle='dashed', linewidth=1, label='UN Data')
     ax.set_title(str(loc_names[loc_index] + ' - Day '+ str(0)))
 
     # set 
@@ -148,7 +151,7 @@ def animateLocationHistogram(outdirs, plot_num, loc_index, sim_index, data_index
     ani = animation.FuncAnimation(fig, updatehist, len(dfTest[0]))
         
     if save_fig:
-       ani.save(filename=plot_folder+'/'+str(loc_names[loc_index])+'_Histogram.gif', writer="pillow")
+       ani.save(filename=plot_folder+'/'+str(loc_names[loc_index]).replace(" ", "").replace("#", "Num")+'_Histogram.gif', writer="pillow")
 
     plt.close(fig)
 
@@ -183,7 +186,7 @@ def animateLocationViolins(outdirs, plot_num, i, sim_indices, data_indices, loc_
         locData = [list(k) for k in zip(*locData)]
         hist = ax.violinplot(locData, showmeans=False, showmedians=True)
         if dataAvailable:
-            ax.scatter([y + 1 for y in range(len(sim_indices))], dataValues.iloc[i].values, color='r', label='UN data')
+            ax.scatter([y + 1 for y in range(len(sim_indices))], dataValues.iloc[i].values, color='r', label='UN Data')
             # where some data has already been plotted to ax
             handles, labels = ax.get_legend_handles_labels()
             handles.append(mpatches.Patch(color='C0', label='Simulations')) 
@@ -206,7 +209,7 @@ def animateLocationViolins(outdirs, plot_num, i, sim_indices, data_indices, loc_
     locData = [list(i) for i in zip(*locData)]
     ax.violinplot(locData, showmeans=False, showmedians=True)
     if dataAvailable:
-        ax.scatter([y + 1 for y in range(len(sim_indices))], dataValues.iloc[0].values, color='r', label='UN data')
+        ax.scatter([y + 1 for y in range(len(sim_indices))], dataValues.iloc[0].values, color='r', label='UN Data')
         
         # where some data has already been plotted to ax
         handles, labels = ax.get_legend_handles_labels()
@@ -260,12 +263,12 @@ def plotNamedStocksByTimestep(code, outdirs, plot_type, FUMEheader):
                     plotLocationDifferences(outdirs, fi, i, sim_indices[i], data_indices[i], loc_names, save_fig=saving, plot_folder=plotfolder, combine_plots_pdf=pdf_pages)
                     fi += 1
     
-            if plot_type == "loc_hist_gif" or plot_type == "all":
-                animateLocationHistogram(outdirs, fi, i, sim_indices[i], data_indices[i], loc_names, y_label, save_fig=saving, plot_folder=plotfolder, combine_plots_pdf=pdf_pages)
-                fi += 1
+            #if plot_type == "loc_hist_gif" or plot_type == "all":
+            #    animateLocationHistogram(outdirs, fi, i, sim_indices[i], data_indices[i], loc_names, y_label, save_fig=saving, plot_folder=plotfolder, combine_plots_pdf=pdf_pages)
+            #    fi += 1
 
-            if plot_type == "loc_violin_gif" or plot_type == "all":
-                animateLocationViolins(outdirs, fi, i, sim_indices, data_indices, loc_names, y_label, save_fig=saving, plot_folder=plotfolder, combine_plots_pdf=pdf_pages)
+        if plot_type == "loc_violin_gif" or plot_type == "all":
+            animateLocationViolins(outdirs, fi, i, sim_indices, data_indices, loc_names, y_label, save_fig=saving, plot_folder=plotfolder, combine_plots_pdf=pdf_pages)
 
     if not combine_plots_pdf:
         plt.show()
@@ -274,7 +277,7 @@ def plotNamedStocksByTimestep(code, outdirs, plot_type, FUMEheader):
 if __name__ == "__main__":
     import ReadHeaders
 
-    code = "facs" #flee, facs or homecoming
+    code = "homecoming" #flee, facs or homecoming
     plot_type = "all"
     if len(sys.argv) > 1:
         code = sys.argv[1]
