@@ -63,8 +63,9 @@ def plotCounts(plot_num, all_counts, save_fig, plot_folder, combine_plots_pdf):
         [mlines.Line2D([], [], color='black', linestyle='dashed', label='Mean'),
          mlines.Line2D([], [], color='blue', label='Median'),
          mpatches.Patch(color='skyblue', label='Q1-Q3'),
+         mlines.Line2D([], [], marker='|', color='blue', linestyle='-', label='One and half inter-quartile range'),
          mlines.Line2D([], [], marker='o', color='w', markerfacecolor='blue', markersize=5, label='Outliers')], 
-        ['Mean', 'Median', '25th-75th percentile', 'Outliers'],)
+        ['Mean', 'Median', '25th-75th percentile (IQR)', r"$\pm 1.5 $ IQR", 'Outliers'],)
     plt.xlabel('Source Location')
     plt.ylabel('Number of Entries')
     plt.title('Boxplot of Entries Grouped by Source')
