@@ -69,7 +69,7 @@ def plotCounts(plot_num, all_counts, save_fig, plot_folder, combine_plots_pdf):
     plt.xlabel('Source Location')
     plt.ylabel('Number of Entries')
     plt.title('Boxplot of Entries Grouped by Source')
-    plt.xticks(rotation=45)
+    plt.xticks(rotation=90)
     #plt.axis('tight')
     plt.tight_layout()
 
