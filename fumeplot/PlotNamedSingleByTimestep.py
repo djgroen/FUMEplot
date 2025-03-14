@@ -65,14 +65,16 @@ def plotCounts(plot_num, all_counts, save_fig, plot_folder, combine_plots_pdf):
          mpatches.Patch(color='skyblue', label='Q1-Q3'),
          mlines.Line2D([], [], marker='|', color='blue', linestyle='-', label='One and half inter-quartile range'),
          mlines.Line2D([], [], marker='o', color='w', markerfacecolor='blue', markersize=5, label='Outliers')], 
-        ['Mean', 'Median', '25th-75th percentile (IQR)', r"$\pm 1.5 $ IQR", 'Outliers'],)
+        ['Mean', 'Median', '25th-75th percentile (IQR)', r'$\pm$ $1.5$ IQR', 'Outliers'],)
     plt.xlabel('Source Location')
     plt.ylabel('Number of Entries')
     plt.title('Boxplot of Entries Grouped by Source')
-    plt.xticks(rotation=90)
+    plt.xticks(rotation=45)
+    plt.grid(axis='y', linestyle='-', linewidth=0.33)
     #plt.axis('tight')
     plt.tight_layout()
 
+    # save plot
     if combine_plots_pdf:
         combine_plots_pdf.savefig(fig)
         print(f"Saved plot {plot_num} to PDF.")
