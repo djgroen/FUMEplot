@@ -28,7 +28,7 @@ def plotCounts(plot_num, all_counts, save_fig, plot_folder, combine_plots_pdf):
     std_counts = combined_counts.std()
 
     # Plot histogram with error bars
-    fig = plt.figure(plot_num+1, figsize=(15, 9))
+    fig = plt.figure(plot_num+1, figsize=(10,6))
 
     # plt.bar(mean_counts.index, 
     #         mean_counts.values, 
@@ -69,7 +69,7 @@ def plotCounts(plot_num, all_counts, save_fig, plot_folder, combine_plots_pdf):
     plt.xlabel('Source Location')
     plt.ylabel('Number of Entries')
     plt.title('Boxplot of Entries Grouped by Source')
-    plt.xticks(rotation=45)
+    plt.xticks(rotation=60)
     plt.grid(axis='y', linestyle='-', linewidth=0.33)
     #plt.axis('tight')
     plt.tight_layout()
