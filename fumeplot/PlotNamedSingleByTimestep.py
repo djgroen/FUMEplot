@@ -7,6 +7,8 @@ import sys
 from pathlib import Path
 import matplotlib.patches as mpatches
 import matplotlib.lines as mlines
+import plotly.graph_objects as go
+
 
 from matplotlib.backends.backend_pdf import PdfPages
 from contextlib import nullcontext
@@ -140,26 +142,130 @@ def plotSourceHist(outdirs, filters, save_fig=False, plot_folder=None, combine_p
         plt.show()
     #plt.close()
     
-def plotNamedSingleByTimestep(code, outdir, plot_type, FUMEheader, filters=[]):
-    plotSourceHist(outdir, filters, save_fig=False, plot_folder=None, combine_plots_pdf=FUMEheader.combine_plots_pdf)
-
-
-if __name__ == "__main__":
-
-    import ReadHeaders
-    code = "homecoming" 
+def plotMigrationSankey(outdirs, save_fig=True, plot_folder="plots"): # CHANGE SAVEFIG AND PLOTFOLDER TO NOT HARDCODE
+    """
+    Creates a single Sankey diagram by aggregating migration.log data
+    from all ensemble run directories (outdirs). In each log file, it reads:
+        - 'source': the country of origin (e.g., Germany, Poland, etc.)
+        - 'destination': the Ukrainian region (e.g., ukr_kyivska, ukr_odessa, etc.)
+        - 'sizeF': number of migrants in that record
+    It then groups the data (summing 'sizeF') per (source, destination) pair
+    and builds one combined Sankey diagram.
     
-    plot_type = "all"
-    if len(sys.argv) > 1:
-        code = sys.argv[1]
-        if len(sys.argv) > 2:
-            plot_type = sys.argv[2]
+    Parameters
+    ----------
+    outdirs : list
+        List of run directories (each containing a migration.log file).
+    save_fig : bool, optional
+        Whether to save the resulting figure as an HTML file. Default is True.
+    plot_folder : str, optional
+        Folder in which to save the output file. Default is "plots".
+    """
 
-    outdir = f"../sample_{code}_agentlog"
+    all_data = []
+    # Loop over every run directory and try to read migration.log from it
+    for d in outdirs:
+        migration_log_path = os.path.join(d, "migration.log")
+        if not os.path.exists(migration_log_path):
+            print(f"[WARNING] Migration log not found in {d}, skipping this folder.")
+            continue
+        try:
+            df_run = pd.read_csv(migration_log_path)
+            all_data.append(df_run)
+        except Exception as e:
+            print(f"[ERROR] Could not read {migration_log_path}: {e}")
+            continue
 
-    outdirs = ReadHeaders.GetOutDirs(outdir)
+    if not all_data:
+        print("[INFO] No migration data found in any run directory.")
+        return
 
-    headers = ReadHeaders.ReadMovelogHeaders(outdirs, mode=code)
+    # Concatenate data from all runs into one DataFrame.
+    df_all = pd.concat(all_data, ignore_index=True)
+    
+    # Group the data by 'source' and 'destination' and sum up the 'sizeF' counts.
+    flows = df_all.groupby(['source', 'destination'])['sizeE'].sum().reset_index()
+
+    # Create a sorted list of unique source countries and destination regions.
+    origin_list = sorted(list(flows['source'].unique()))
+    region_list = sorted(list(flows['destination'].unique()))
+    
+    # Create the complete node label list: sources on left, destinations on right.
+    node_labels = origin_list + region_list
+    label_to_index = {label: idx for idx, label in enumerate(node_labels)}
+
+    # Build the link data arrays for the Sankey (source indices, target indices, and values).
+    source_indices = []
+    target_indices = []
+    values = []
+    for _, row in flows.iterrows():
+        src_label = row['source']
+        dest_label = row['destination']
+        count = row['sizeE']
+        src_idx = label_to_index.get(src_label)
+        tgt_idx = label_to_index.get(dest_label)
+        # Only add the link if both indices are found.
+        if src_idx is None or tgt_idx is None:
+            continue
+        source_indices.append(src_idx)
+        target_indices.append(tgt_idx)
+        values.append(count)
+    
+    # Create manual node positions: put sources (origin_list) on the left (x=0.1) 
+    # and destinations (region_list) on the right (x=0.9).
+    n_origins = len(origin_list)
+    n_regions = len(region_list)
+    node_x = []
+    node_y = []
+    # For each origin, place it at x=0.1, with evenly spaced y-values.
+    for i in range(n_origins):
+        node_x.append(0.1)
+        node_y.append((i + 1) / (n_origins + 1))
+    # For each destination, place it at x=0.9, with evenly spaced y-values.
+    for i in range(n_regions):
+        node_x.append(0.9)
+        node_y.append((i + 1) / (n_regions + 1))
+
+    # Create the Sankey diagram using Plotly.
+    fig = go.Figure(data=[go.Sankey(
+        node=dict(
+            pad=15,
+            thickness=20,
+            line=dict(color="black", width=0.5),
+            label=node_labels,
+            x=node_x,
+            y=node_y
+        ),
+        link=dict(
+            source=source_indices,
+            target=target_indices,
+            value=values
+        )
+    )])
+    
+    fig.update_layout(
+        title_text="Combined Migration Sankey Diagram (All Ensemble Runs)",
+        font_size=10
+    )
+    
+    # Save the figure if requested.
+    os.makedirs(plot_folder, exist_ok=True)
+    out_path = os.path.join(plot_folder, "migration_sankey_combined.html")
+    fig.write_html(out_path)
+    print(f"[INFO] Combined Sankey diagram saved to {out_path}")
+    
+    png_out_path = os.path.join(plot_folder, "migration_sankey_combined.png")
+    try:
+        fig.write_image(png_out_path)
+        print(f"[INFO] Combined Sankey diagram image saved to {png_out_path}")
+    except Exception as e:
+        print(f"[ERROR] Unable to save PNG image: {e}")
+    
+    
+def plotNamedSingleByTimestep(code, outdirs, plot_type, headers, filters=[]):
+    #plotSourceHist(outdir, filters, save_fig=False, plot_folder=None, combine_plots_pdf=FUMEheader.combine_plots_pdf)
+    
+    #sim_indices = FUMEheader.sim_indices # NEWLY ADDED
 
     # ensembleSize = 0
     ensembleSize = 8
@@ -171,9 +277,34 @@ if __name__ == "__main__":
     fi=0
     if plot_type == "source_hist" or plot_type == "all":
         plotSourceHist(outdirs, filters=[], save_fig=saving, plot_folder=plotfolder, combine_plots_pdf=True)
+    
+    if plot_type == "single_sankey" or plot_type == "all":
+        plotMigrationSankey(outdirs, save_fig=saving, plot_folder=plotfolder)
 
     # Show plot
     plt.show()
+
+
+if __name__ == "__main__":
+
+    import ReadHeaders
+    code = "homecoming" 
+    
+    plot_type = "all" # Plot type is set to 'all' by default
+    if len(sys.argv) > 1: # If at least one argument is passed, the first argument becomes 'code'
+        code = sys.argv[1]
+        if len(sys.argv) > 2: # Second argument becomes 'plot_type'
+            plot_type = sys.argv[2]
+
+    outdir = f"../sample_{code}_agentlog"
+
+    outdirs = ReadHeaders.GetOutDirs(outdir)
+    
+    #FUMEheader = ReadHeaders.ReadOutHeaders(outdirs, mode=code)
+    headers = ReadHeaders.ReadMovelogHeaders(outdirs, mode=code)
+    
+    plotNamedSingleByTimestep(code, outdirs, plot_type, headers)
+    
 
 
 # ISSUES:
