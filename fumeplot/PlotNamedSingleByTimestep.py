@@ -263,9 +263,6 @@ def plotMigrationSankey(outdirs, save_fig=True, plot_folder="plots"): # CHANGE S
     
     
 def plotNamedSingleByTimestep(code, outdirs, plot_type, headers, filters=[]):
-    #plotSourceHist(outdir, filters, save_fig=False, plot_folder=None, combine_plots_pdf=FUMEheader.combine_plots_pdf)
-    
-    #sim_indices = FUMEheader.sim_indices # NEWLY ADDED
 
     # ensembleSize = 0
     ensembleSize = 8
