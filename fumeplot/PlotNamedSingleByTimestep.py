@@ -13,6 +13,31 @@ import plotly.graph_objects as go
 from matplotlib.backends.backend_pdf import PdfPages
 from contextlib import nullcontext
 
+font = {'family': 'serif',
+        'weight': 'bold',
+        'size': 22}
+plt.rc('font', **font)
+# plt.rcParams['axes.titlesize'] = 12
+# plt.rcParams['axes.labelsize'] = 12
+# plt.rcParams['xtick.labelsize'] = 10
+# plt.rcParams['ytick.labelsize'] = 10
+# plt.rcParams['legend.fontsize'] = 10
+# plt.rcParams['legend.handlelength'] = 1.5
+# plt.rcParams['legend.handleheight'] = 0.5
+# plt.rcParams['legend.borderpad'] = 0.5
+# plt.rcParams['legend.borderaxespad'] = 0.5
+# plt.rcParams['legend.frameon'] = True
+# plt.rcParams['legend.framealpha'] = 0.5
+# plt.rcParams['legend.loc'] = 'best'
+# plt.rcParams['legend.labelspacing'] = 0.5
+# plt.rcParams['legend.columnspacing'] = 1.0
+# plt.rcParams['legend.markerscale'] = 1.0
+
+import latexplotlib as lpl
+lpl.style.use('latex12pt')
+latex_doc_size = (347.12354, 549.138)
+lpl.size.set(*latex_doc_size)
+
 
 def _formatLabels(labels):
 
@@ -30,7 +55,11 @@ def plotCounts(plot_num, all_counts, save_fig, plot_folder, combine_plots_pdf):
     std_counts = combined_counts.std()
 
     # Plot histogram with error bars
-    fig = plt.figure(plot_num+1, figsize=(10,6))
+    #fig= plt.figure(plot_num+1, figsize=(10,6))
+    #ax = fig.add_subplot(111)
+    fig, ax = plt.subplots(num=plot_num+1, figsize=(10,6))
+    # - LatexPlotLib version
+    #fig, ax = lpl.subplots(num=plot_num+1)
 
     # plt.bar(mean_counts.index, 
     #         mean_counts.values, 
@@ -39,7 +68,7 @@ def plotCounts(plot_num, all_counts, save_fig, plot_folder, combine_plots_pdf):
     #         capsize=5,
     #         )
 
-    plt.boxplot(
+    ax.boxplot(
                 combined_counts,
                 tick_labels=_formatLabels(mean_counts.index),
                 patch_artist=True, 
@@ -61,27 +90,32 @@ def plotCounts(plot_num, all_counts, save_fig, plot_folder, combine_plots_pdf):
                 )
 
     # Labels and title
-    plt.legend(
+    fig.legend(
         [mlines.Line2D([], [], color='black', linestyle='dashed', label='Mean'),
          mlines.Line2D([], [], color='blue', label='Median'),
          mpatches.Patch(color='skyblue', label='Q1-Q3'),
          mlines.Line2D([], [], marker='|', color='blue', linestyle='-', label='One and half inter-quartile range'),
          mlines.Line2D([], [], marker='o', color='w', markerfacecolor='blue', markersize=5, label='Outliers')], 
-        ['Mean', 'Median', '25th-75th percentile (IQR)', r'$\pm$ $1.5$ IQR', 'Outliers'],)
-    plt.xlabel('Source Location')
-    plt.ylabel('Number of Entries')
-    plt.title('Boxplot of Entries Grouped by Source')
-    plt.xticks(rotation=60)
-    plt.grid(axis='y', linestyle='-', linewidth=0.33)
-    #plt.axis('tight')
-    plt.tight_layout()
+        ['Mean', 'Median', '25th-75th percentile (IQR)', r'$\pm$ $1.5$ IQR', 'Outliers'],
+        # ['Mean', 'Median', '25th-75th percentile (IQR)', '1.5 IQR', 'Outliers'],
+        )
+    
+    ax.set_xlabel('Source Location')
+    ax.set_ylabel('Number of Entries')
+    ax.set_title('Boxplot of Entries Grouped by Source')
+    ax.tick_params('x', rotation=60)
+    ax.grid(axis='y', linestyle='-', linewidth=0.33)
+    plt.axis('tight')  # Uncommented to set axis to tight
+
+    # - LatexPlotLib version
+    #lpl.tight_layout()  # Uncommented to apply tight layout
 
     # save plot
     if combine_plots_pdf:
         combine_plots_pdf.savefig(fig)
         print(f"Saved plot {plot_num} to PDF.")
     if save_fig:
-        plt.savefig(plot_folder+'/EntriesBySource.png')
+        fig.savefig(plot_folder+'/EntriesBySource.png')
     #plt.close()
 
 def _getFilteredCounts(csv_files, query, var_type="str"):
