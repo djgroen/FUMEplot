@@ -13,10 +13,10 @@ import plotly.graph_objects as go
 from matplotlib.backends.backend_pdf import PdfPages
 from contextlib import nullcontext
 
-font = {'family': 'serif',
-        'weight': 'bold',
-        'size': 22}
-plt.rc('font', **font)
+# font = {'family': 'serif',
+#         'weight': 'bold',
+#         'size': 12}
+# plt.rc('font', **font)
 # plt.rcParams['axes.titlesize'] = 12
 # plt.rcParams['axes.labelsize'] = 12
 # plt.rcParams['xtick.labelsize'] = 10
@@ -44,6 +44,9 @@ def _formatLabels(labels):
     # Capitalize and replace underscores with spaces
     labels =  [label.replace('_', ' ').title() for label in labels]
 
+    # Leave only the last words of the labels
+    labels = [label.split()[-1] for label in labels]
+
     return labels
 
 def plotCounts(plot_num, all_counts, save_fig, plot_folder, combine_plots_pdf):
@@ -55,11 +58,11 @@ def plotCounts(plot_num, all_counts, save_fig, plot_folder, combine_plots_pdf):
     std_counts = combined_counts.std()
 
     # Plot histogram with error bars
-    #fig= plt.figure(plot_num+1, figsize=(10,6))
-    #ax = fig.add_subplot(111)
-    fig, ax = plt.subplots(num=plot_num+1, figsize=(10,6))
+    # #fig= plt.figure(plot_num+1, figsize=(10,6))
+    # #ax = fig.add_subplot(111)
+    # fig, ax = plt.subplots(num=plot_num+1, figsize=(10,6))
     # - LatexPlotLib version
-    #fig, ax = lpl.subplots(num=plot_num+1)
+    fig, ax = lpl.subplots(num=plot_num+1)
 
     # plt.bar(mean_counts.index, 
     #         mean_counts.values, 
@@ -90,7 +93,7 @@ def plotCounts(plot_num, all_counts, save_fig, plot_folder, combine_plots_pdf):
                 )
 
     # Labels and title
-    fig.legend(
+    ax.legend(
         [mlines.Line2D([], [], color='black', linestyle='dashed', label='Mean'),
          mlines.Line2D([], [], color='blue', label='Median'),
          mpatches.Patch(color='skyblue', label='Q1-Q3'),
@@ -98,6 +101,7 @@ def plotCounts(plot_num, all_counts, save_fig, plot_folder, combine_plots_pdf):
          mlines.Line2D([], [], marker='o', color='w', markerfacecolor='blue', markersize=5, label='Outliers')], 
         ['Mean', 'Median', '25th-75th percentile (IQR)', r'$\pm$ $1.5$ IQR', 'Outliers'],
         # ['Mean', 'Median', '25th-75th percentile (IQR)', '1.5 IQR', 'Outliers'],
+        loc='upper right',
         )
     
     ax.set_xlabel('Source Location')
@@ -105,7 +109,7 @@ def plotCounts(plot_num, all_counts, save_fig, plot_folder, combine_plots_pdf):
     ax.set_title('Boxplot of Entries Grouped by Source')
     ax.tick_params('x', rotation=60)
     ax.grid(axis='y', linestyle='-', linewidth=0.33)
-    plt.axis('tight')  # Uncommented to set axis to tight
+    # plt.axis('tight')  # Uncommented to set axis to tight
 
     # - LatexPlotLib version
     #lpl.tight_layout()  # Uncommented to apply tight layout
