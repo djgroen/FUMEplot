@@ -298,6 +298,297 @@ def plotMigrationSankey(outdirs, save_fig=True, plot_folder="plots"): # CHANGE S
         print(f"[INFO] Combined Sankey diagram image saved to {png_out_path}")
     except Exception as e:
         print(f"[ERROR] Unable to save PNG image: {e}")
+        
+def plotStackedBar(outdirs, aggregator='age_binned', filters=None, save_fig=True, plot_folder="plots"):
+    """
+    Creates a stacked bar chart showing total arrivals by destination 
+    (Ukrainian Oblast) with each bar stacked by the categories 
+    found in the 'aggregator' column (e.g., age, gender, etc.).
+    
+    This function reads migration.log files from each run directory in outdirs,
+    computes a 'total_size' as the sum of SizeE (employable) and SizeD (dependant),
+    applies optional filters, groups the data by destination and aggregator, 
+    and then produces a stacked bar chart.
+    
+    Parameters
+    ----------
+    outdirs : list of str
+        List of run directories (each containing a migration.log file).
+    aggregator : str, optional
+        The column used for stacking the bars (e.g., 'age' or 'gender').
+        This is supplied at runtime via your config (FUMEheader); default is 'age'.
+    filters : list of tuples or None
+        Optional filters to apply, formatted as (column, operator, value),
+        e.g. [('gender', '==', 'f'), ('age', '>=', 18)].
+    save_fig : bool, optional
+        Whether to save the figure as a PNG file; default is True.
+    plot_folder : str, optional
+        The folder in which to save the resulting figure; default is "plots".
+    """
+    if filters is None:
+        filters = []
+    
+    # 1. Read all migration.log files from each run directory in outdirs.
+    all_data = []
+    for d in outdirs:
+        migration_file = os.path.join(d, "migration.log")
+        if not os.path.exists(migration_file):
+            print(f"[WARNING] No migration.log in {d}, skipping.")
+            continue
+        df_run = pd.read_csv(migration_file)
+        all_data.append(df_run)
+            
+    if not all_data:
+        print("[INFO] No migration data found in any run directory.")
+        return
+        
+    # 2. Concatenate data from all runs into one DataFrame.
+    df_all = pd.concat(all_data, ignore_index=True)
+    
+    # 3. Apply optional filters.
+    for (col, op, val) in filters:
+        if op == "==":
+            df_all = df_all[df_all[col] == val]
+        elif op == "!=":
+            df_all = df_all[df_all[col] != val]
+        elif op == ">":
+            df_all = df_all[df_all[col] > val]
+        elif op == "<":
+            df_all = df_all[df_all[col] < val]
+        elif op == ">=":
+            df_all = df_all[df_all[col] >= val]
+        elif op == "<=":
+            df_all = df_all[df_all[col] <= val]
+        else:
+            print(f"[WARNING] Unsupported operator '{op}' for filter {col} {op} {val}")
+        
+    if aggregator == "age":
+        # Define your bins and labels as desired.
+        bins = [0, 17, 29, 49, 64, 200]  # adjust upper bound as needed
+        labels = ["0-17", "18-29", "30-49", "50-64", "65+"]
+        if "age" not in df_all.columns:
+            print("[ERROR] Column 'age' not found in data. Cannot bin ages.")
+            return
+        # Create the age_bin column using pd.cut()
+        df_all['age_bin'] = pd.cut(df_all['age'], bins=bins, labels=labels, right=True)
+        # Update aggregator to use the new column
+        aggregator = "age_bin"
+            
+    # 4. Check necessary columns: aggregator, 'destination', and total_size.
+    for needed in [aggregator, 'destination']:
+        if needed not in df_all.columns:
+            print(f"[ERROR] Column '{needed}' not found in data.")
+            return
+    
+    # 5. Group the data by destination and aggregator column, summing the total_size counts.
+    group_df = df_all.groupby(['destination', aggregator]).size().reset_index(name='counts')
+
+    
+    # 6. Pivot the grouped DataFrame so that rows are destinations and columns are the values of the aggregator.
+    pivot_df = group_df.pivot(index='destination', columns=aggregator, values='counts').fillna(0)
+
+    
+    # 7. Create a stacked bar chart.
+    plt.figure(figsize=(12, 7))
+    pivot_df.plot(kind='bar', stacked=True, ax=plt.gca())
+    plt.title(f"Arrivals by Destination, Stacked by '{aggregator}'")
+    plt.xlabel("Destination (Ukrainian Oblast)")
+    plt.ylabel("Number of Individuals (Row Count)")
+    plt.xticks(rotation=45, ha='right')
+    plt.tight_layout()
+
+
+    # 8. Save the figure if required.
+    os.makedirs(plot_folder, exist_ok=True)
+    out_file = os.path.join(plot_folder, f"stacked_bar_{aggregator}.png")
+    if save_fig:
+        plt.savefig(out_file, dpi=150)
+        print(f"[INFO] Stacked bar chart saved to {out_file}")
+    
+    plt.show()
+    plt.close()
+    
+    # To prepare data for Plotly, melt the pivoted DataFrame into long format.
+    df_melted = pivot_df.reset_index().melt(id_vars="destination", 
+                                            var_name=aggregator, 
+                                            value_name="counts")
+    # Create a Plotly Express stacked bar chart.
+    fig = px.bar(df_melted,
+                 x="destination",
+                 y="counts",
+                 color=aggregator,
+                 barmode="stack",
+                 title=f"Arrivals by Destination, Stacked by '{aggregator}'",
+                 labels={"destination": "Destination (Ukrainian Oblast)",
+                         "counts": "Number of Individuals (Row Count)"})
+    fig.update_layout(xaxis_tickangle=-45)
+    
+    html_out_file = os.path.join(plot_folder, f"stacked_bar_{aggregator}.html")
+    fig.write_html(html_out_file)
+    print(f"[INFO] Interactive stacked bar chart (HTML) saved to {html_out_file}")
+    
+    # Optionally, display the interactive figure in a browser if desired.
+    fig.show()
+
+def plotLineOverTime(outdirs, primary_filter_column='source', primary_filter_value=None, line_aggregator='age_binned', filters=None, save_fig=True, plot_folder="plots"):
+    """
+    Creates a line chart showing the number of migrations over time.
+    
+    You can specify a primary filtering criterion (for example, only show data
+    for a given source or destination) by setting:
+      - primary_filter_column: the column to filter on (e.g., "source" or "destination")
+      - primary_filter_value: the value in that column (e.g., "Germany" or "ukr_kyivska")
+      
+    In addition, you can specify which aggregator to use to split the lines (e.g., "age_binned",
+    "gender", etc.). If "age_binned" is chosen, the function will bin the raw age data.
+    
+    The function creates both:
+      1. A static PNG file (using matplotlib), and
+      2. An interactive HTML file (using Plotly) with hover tooltips.
+    
+    Parameters
+    ----------
+    outdirs : list of str
+        List of run directories (each containing a migration.log file).
+    primary_filter_column : str, optional
+        Column used for primary filtering (e.g., "source" or "destination"). Default is "source".
+    primary_filter_value : str or None, optional
+        If provided, only rows where primary_filter_column == primary_filter_value are used.
+        If None, data from all values is included.
+    line_aggregator : str, optional
+        The column used to differentiate the line series (e.g., "age_binned", "gender", etc.).
+    filters : list of tuples or None, optional
+        Additional filters, each as a tuple (column, operator, value), e.g.,
+        [('age', '>=', 18)]. Default is None.
+    save_fig : bool, optional
+        Whether to save output files. Default is True.
+    plot_folder : str, optional
+        Folder in which to save the output files. Default is "plots".
+    """
+    if filters is None:
+        filters = []
+
+    # 1. Read all migration.log files from each run directory.
+    all_data = []
+    for d in outdirs:
+        migration_file = os.path.join(d, "migration.log")
+        if not os.path.exists(migration_file):
+            print(f"[WARNING] No migration.log in {d}; skipping.")
+            continue
+        try:
+            df_run = pd.read_csv(migration_file)
+            all_data.append(df_run)
+        except Exception as e:
+            print(f"[ERROR] Could not read {migration_file}: {e}")
+            continue
+
+    if not all_data:
+        print("[INFO] No migration data found.")
+        return
+
+    # 2. Concatenate data from all runs.
+    df_all = pd.concat(all_data, ignore_index=True)
+
+    # 3. Apply additional filters.
+    for (col, op, val) in filters:
+        if op == "==":
+            df_all = df_all[df_all[col] == val]
+        elif op == "!=":
+            df_all = df_all[df_all[col] != val]
+        elif op == ">":
+            df_all = df_all[df_all[col] > val]
+        elif op == "<":
+            df_all = df_all[df_all[col] < val]
+        elif op == ">=":
+            df_all = df_all[df_all[col] >= val]
+        elif op == "<=":
+            df_all = df_all[df_all[col] <= val]
+        else:
+            print(f"[WARNING] Unsupported operator '{op}' for filter {col} {op} {val}")
+
+    # 4. Apply the primary filter (if a value is specified).
+    if primary_filter_value is not None:
+        if primary_filter_column not in df_all.columns:
+            print(f"[ERROR] Column '{primary_filter_column}' not found in data.")
+            return
+        df_all = df_all[df_all[primary_filter_column] == primary_filter_value]
+    
+    # 5. If the line aggregator is "age_binned", bin ages.
+    if line_aggregator == "age_binned":
+        bins = [0, 17, 29, 49, 64, 200]   # Customize as desired
+        labels = ["0-17", "18-29", "30-49", "50-64", "65+"]
+        if "age" not in df_all.columns:
+            print("[ERROR] Column 'age' not found; cannot bin ages.")
+            return
+        df_all['age_bin'] = pd.cut(df_all['age'], bins=bins, labels=labels, right=True)
+        line_aggregator = "age_bin"  # Update to use binned ages
+
+    # 6. Check that required columns exist.
+    for needed in [line_aggregator, 'time']:
+        if needed not in df_all.columns:
+            print(f"[ERROR] Column '{needed}' not found in data.")
+            return
+
+    # 7. Group the data by time and line_aggregator (count rows for number of migrations).
+    group_df = df_all.groupby(['time', line_aggregator]).size().reset_index(name='counts')
+
+    # 8. Pivot so that each row is a time step and each column is a line series.
+    pivot_df = group_df.pivot(index='time', columns=line_aggregator, values='counts').fillna(0)
+
+    """
+    # Optionally, sort the DataFrame by time.
+    try:
+        pivot_df.index = pd.to_datetime(pivot_df.index)
+        pivot_df.sort_index(inplace=True)
+    except Exception as e:
+        # If time isn't a date, no problem.
+        pass
+    """
+
+    # ******************************
+    # Static Line Chart with Matplotlib
+    # ******************************
+    plt.figure(figsize=(12, 7))
+    for column in pivot_df.columns:
+        plt.plot(pivot_df.index, pivot_df[column], marker='o', label=str(column))
+    plt.title(f"Number of Migrations Over Time\n(Filtered by {primary_filter_column}={primary_filter_value if primary_filter_value is not None else 'All'})\nGrouped by '{line_aggregator}'")
+    plt.xlabel("Time")
+    plt.ylabel("Number of Migrations")
+    plt.legend(title=line_aggregator)
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+
+    Path(plot_folder).mkdir(parents=True, exist_ok=True)
+    png_file = os.path.join(plot_folder, f"line_{primary_filter_column}_{primary_filter_value}_{line_aggregator}.png")
+    if save_fig:
+        plt.savefig(png_file, dpi=150)
+        print(f"[INFO] Line chart (PNG) saved to {png_file}")
+    plt.show()
+    plt.close()
+
+
+    # Interactive Line Chart with Plotly
+    # Melt the pivot table to long format.
+    df_melted = pivot_df.reset_index().melt(id_vars='time', var_name=line_aggregator, value_name='counts')
+
+    # Create a Plotly line chart.
+    fig = px.line(df_melted,
+                  x='time',
+                  y='counts',
+                  color=line_aggregator,
+                  title=f"Number of Migrations Over Time\n(Filtered by {primary_filter_column}={primary_filter_value if primary_filter_value is not None else 'All'})",
+                  labels={'time': 'Time', 'counts': 'Number of Migrations'})
+    
+    # If time is a date, you can enforce date formatting:
+    try:
+        fig.update_xaxes(type='date')
+    except:
+        pass
+
+    html_file = os.path.join(plot_folder, f"line_{primary_filter_column}_{primary_filter_value}_{line_aggregator}.html")
+    fig.write_html(html_file)
+    print(f"[INFO] Interactive line chart (HTML) saved to {html_file}")
+    fig.show()
     
     
 def plotNamedSingleByTimestep(code, outdirs, plot_type, headers, filters=[]):
@@ -315,6 +606,13 @@ def plotNamedSingleByTimestep(code, outdirs, plot_type, headers, filters=[]):
     
     if plot_type == "single_sankey" or plot_type == "all":
         plotMigrationSankey(outdirs, save_fig=saving, plot_folder=plotfolder)
+        
+    if plot_type == "stacked_bar" or plot_type == "all":
+        plotStackedBar(outdirs=outdirs, aggregator=aggregator, filters=filters, save_fig=saving, plot_folder=plotfolder
+        )
+    if plot_type == "line_chart" or plot_type == "all":
+        plotLineOverTime(outdirs=outdirs, primary_filter_column=primary_filter_column, primary_filter_value=primary_filter_value, line_aggregator=aggregator, filters=filters, save_fig=saving, plot_folder=plotfolder
+        )
 
     # Show plot
     plt.show()
