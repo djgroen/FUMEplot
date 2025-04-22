@@ -8,6 +8,8 @@ from pathlib import Path
 import matplotlib.patches as mpatches
 import matplotlib.lines as mlines
 import plotly.graph_objects as go
+import plotly.express as px
+
 
 
 from matplotlib.backends.backend_pdf import PdfPages
@@ -578,12 +580,17 @@ def plotLineOverTime(outdirs, primary_filter_column='source', primary_filter_val
                   color=line_aggregator,
                   title=f"Number of Migrations Over Time\n(Filtered by {primary_filter_column}={primary_filter_value if primary_filter_value is not None else 'All'})",
                   labels={'time': 'Time', 'counts': 'Number of Migrations'})
+    # Forces x-axis to stay linear, not as dates (UNIX from 1970)
+    fig.update_layout(xaxis_type='linear')
+    fig.update_xaxes(tickmode='linear')
     
+    '''
     # If time is a date, you can enforce date formatting:
     try:
         fig.update_xaxes(type='date')
     except:
         pass
+    '''
 
     html_file = os.path.join(plot_folder, f"line_{primary_filter_column}_{primary_filter_value}_{line_aggregator}.html")
     fig.write_html(html_file)
@@ -591,8 +598,15 @@ def plotLineOverTime(outdirs, primary_filter_column='source', primary_filter_val
     fig.show()
     
     
-def plotNamedSingleByTimestep(code, outdirs, plot_type, headers, filters=[]):
-
+def plotNamedSingleByTimestep(code, outdirs, plot_type, FUMEheader, filters=[], aggregator=None):
+    aggregator = getattr(FUMEheader, 'aggregator', 'age_binned')
+    filters = getattr(FUMEheader, 'filters', [])
+    
+    # e.g. primary_filter_column = "source" or "destination"
+    primary_filter_column = getattr(FUMEheader, 'primary_filter_column', 'destination')
+    # e.g. primary_filter_value = "germany" or "ukr_kyivska" 
+    primary_filter_value = getattr(FUMEheader, 'primary_filter_value', 'kyiv')
+    
     # ensembleSize = 0
     ensembleSize = 8
     
@@ -633,11 +647,19 @@ if __name__ == "__main__":
 
     outdirs = ReadHeaders.GetOutDirs(outdir)
     
-    #FUMEheader = ReadHeaders.ReadOutHeaders(outdirs, mode=code)
+    '''
+    #FUMEheader = ReadHeaders.ReadOutHeaders(outdirs, mode=code) #FOR CSV
+    FUMEheader = ReadHeaders.ReadMovelogHeaders(outdirs, mode=code)
     headers = ReadHeaders.ReadMovelogHeaders(outdirs, mode=code)
     
-    plotNamedSingleByTimestep(code, outdirs, plot_type, headers)
-    
+    plotNamedSingleByTimestep(code, outdirs, plot_type, FUMEheaders)
+    '''
+    # CONFIG HEADER (reads your .yml aggregator / filters / modes)
+    FUMEheader = ReadHeaders.ReadOutHeaders(outdirs, mode=code)
+    # if you still need move‑log metadata later, you can load it too:
+    move_header = ReadHeaders.ReadMovelogHeaders(outdirs, mode=code)
+
+    plotNamedSingleByTimestep(code, outdirs, plot_type, FUMEheader)
 
 
 # ISSUES:
