@@ -185,138 +185,121 @@ def plotSourceHist(outdirs, filters, save_fig=False, plot_folder=None, combine_p
     
 def plotMigrationSankey(outdirs, save_fig=True, plot_folder="plots"): # CHANGE SAVEFIG AND PLOTFOLDER TO NOT HARDCODE
     """
-    Creates a single Sankey diagram by aggregating migration.log data
-    from all ensemble run directories (outdirs). In each log file, it reads:
-        - 'source': the country of origin (e.g., Germany, Poland, etc.)
-        - 'destination': the Ukrainian region (e.g., ukr_kyivska, ukr_odessa, etc.)
-        - 'sizeF': number of migrants in that record
-    It then groups the data (summing 'sizeF') per (source, destination) pair
-    and builds one combined Sankey diagram.
-    
-    Parameters
-    ----------
-    outdirs : list
-        List of run directories (each containing a migration.log file).
-    save_fig : bool, optional
-        Whether to save the resulting figure as an HTML file. Default is True.
-    plot_folder : str, optional
-        Folder in which to save the output file. Default is "plots".
+    Creates a Sankey diagram showing the *average* number of migrations
+    per origin→destination link, aggregated across all ensemble runs.
+
+    Each run’s migrations.log is read, row-counts for each (source, destination)
+    pair are computed, and then we take the mean count for each link.
     """
-
-    all_data = []
-    # Loop over every run directory and try to read migration.log from it
-    for d in outdirs:
-        migration_log_path = os.path.join(d, "migration.log")
-        if not os.path.exists(migration_log_path):
-            print(f"[WARNING] Migration log not found in {d}, skipping this folder.")
-            continue
-        try:
-            df_run = pd.read_csv(migration_log_path)
-            all_data.append(df_run)
-        except Exception as e:
-            print(f"[ERROR] Could not read {migration_log_path}: {e}")
+    # 1. Read each run’s migration.log and compute link counts
+    per_run_flows = []  # will hold one DataFrame per run
+    for run_dir in outdirs:
+        log_path = os.path.join(run_dir, "migration.log")
+        if not os.path.exists(log_path):
+            print(f"[WARNING] No migration.log in {run_dir}, skipping.")
             continue
 
-    if not all_data:
-        print("[INFO] No migration data found in any run directory.")
+        # read the raw log
+        df = pd.read_csv(log_path)
+
+        # count how many rows for each (source, destination) in current run
+        flows_this_run = (
+            df
+            .groupby(['source', 'destination'])
+            .size()
+            .reset_index(name='count')  # 'count' is just the number of rows
+        )
+        per_run_flows.append(flows_this_run)
+    
+    # if nothing was read, send error
+    if not per_run_flows:
+        print("[INFO] No valid migration.log files found.")
         return
-
-    # Concatenate data from all runs into one DataFrame.
-    df_all = pd.concat(all_data, ignore_index=True)
     
-    # Group the data by 'source' and 'destination' and sum up the 'sizeF' counts.
-    flows = df_all.groupby(['source', 'destination'])['sizeE'].sum().reset_index()
+    # 2. Concatenate all runs and compute mean per link
+    all_flows = pd.concat(per_run_flows, ignore_index=True)
 
-    # Create a sorted list of unique source countries and destination regions.
-    origin_list = sorted(list(flows['source'].unique()))
-    region_list = sorted(list(flows['destination'].unique()))
+    mean_flows = (
+        all_flows
+        .groupby(['source', 'destination'])['count']
+        .mean()
+        .reset_index(name='mean_count')  # average count across runs
+    )
     
-    # Create the complete node label list: sources on left, destinations on right.
+    # 3. Build node lists and index mapping
+    origin_list = sorted(mean_flows['source'].unique())
+    region_list = sorted(mean_flows['destination'].unique())
     node_labels = origin_list + region_list
-    label_to_index = {label: idx for idx, label in enumerate(node_labels)}
-
-    # Build the link data arrays for the Sankey (source indices, target indices, and values).
-    source_indices = []
-    target_indices = []
-    values = []
-    for _, row in flows.iterrows():
-        src_label = row['source']
-        dest_label = row['destination']
-        count = row['sizeE']
-        src_idx = label_to_index.get(src_label)
-        tgt_idx = label_to_index.get(dest_label)
-        # Only add the link if both indices are found.
-        if src_idx is None or tgt_idx is None:
-            continue
-        source_indices.append(src_idx)
-        target_indices.append(tgt_idx)
-        values.append(count)
+    label_to_idx = {lbl: i for i, lbl in enumerate(node_labels)}
     
-    # Create manual node positions: put sources (origin_list) on the left (x=0.1) 
-    # and destinations (region_list) on the right (x=0.9).
-    n_origins = len(origin_list)
-    n_regions = len(region_list)
-    node_x = []
-    node_y = []
-    # For each origin, place it at x=0.1, with evenly spaced y-values.
-    for i in range(n_origins):
+    # 4. Turn each row of mean_flows into a Sankey link
+    src_indices = []
+    tgt_indices = []
+    values     = []
+    for _, row in mean_flows.iterrows():
+        s = label_to_idx[row['source']]
+        t = label_to_idx[row['destination']]
+        v = row['mean_count']
+        src_indices.append(s)
+        tgt_indices.append(t)
+        values.append(v)
+    
+    # 5. Manually position nodes: origins left, destinations right
+    n_orig = len(origin_list)
+    n_dest = len(region_list)
+    node_x, node_y = [], []
+    # spread origins evenly at x=0.1
+    for i in range(n_orig):
         node_x.append(0.1)
-        node_y.append((i + 1) / (n_origins + 1))
-    # For each destination, place it at x=0.9, with evenly spaced y-values.
-    for i in range(n_regions):
+        node_y.append((i+1)/(n_orig+1))
+    # spread destinations at x=0.9
+    for i in range(n_dest):
         node_x.append(0.9)
-        node_y.append((i + 1) / (n_regions + 1))
-
-    # Create the Sankey diagram using Plotly.
+        node_y.append((i+1)/(n_dest+1))
+        
+    # 6. Build the Plotly Sankey
     fig = go.Figure(data=[go.Sankey(
-        node=dict(
-            pad=15,
-            thickness=20,
+        node = dict(
+            pad=15, thickness=20,
             line=dict(color="black", width=0.5),
-            label=node_labels,
-            x=node_x,
-            y=node_y
+            label=node_labels, x=node_x, y=node_y
         ),
-        link=dict(
-            source=source_indices,
-            target=target_indices,
+        link = dict(
+            source=src_indices,
+            target=tgt_indices,
             value=values
         )
     )])
-    
+
     fig.update_layout(
-        title_text="Combined Migration Sankey Diagram (All Ensemble Runs)",
+        title_text="Mean Migration Sankey (across ensemble runs)",
         font_size=10
     )
     
-    # Save the figure if requested.
+    # 7. Save outputs and create png
     os.makedirs(plot_folder, exist_ok=True)
-    out_path = os.path.join(plot_folder, "migration_sankey_combined.html")
-    fig.write_html(out_path)
-    print(f"[INFO] Combined Sankey diagram saved to {out_path}")
-    
-    png_out_path = os.path.join(plot_folder, "migration_sankey_combined.png")
-    try:
-        fig.write_image(png_out_path)
-        print(f"[INFO] Combined Sankey diagram image saved to {png_out_path}")
-    except Exception as e:
-        print(f"[ERROR] Unable to save PNG image: {e}")
+    html_path = os.path.join(plot_folder, "migration_sankey_mean.html")
+    fig.write_html(html_path)
+    print(f"[INFO] Sankey HTML saved to {html_path}")
+
+    if save_fig:
+        png_path = os.path.join(plot_folder, "migration_sankey_mean.png")
+        try:
+            fig.write_image(png_path)
+            print(f"[INFO] Sankey PNG saved to {png_path}")
+        except Exception as e:
+            print(f"[ERROR] Couldn't write PNG: {e}")
+
         
 def plotStackedBar(outdirs, aggregator='age_binned', filters=None, save_fig=True, plot_folder="plots"):
     """
-    Creates a stacked bar chart showing total arrivals by destination 
-    (Ukrainian Oblast) with each bar stacked by the categories 
-    found in the 'aggregator' column (e.g., age, gender, etc.).
-    
-    This function reads migration.log files from each run directory in outdirs,
-    computes a 'total_size' as the sum of SizeE (employable) and SizeD (dependant),
-    applies optional filters, groups the data by destination and aggregator, 
-    and then produces a stacked bar chart.
+    Reads every migration.log in `outdirs`, applies optional filters,
+    then groups by `destination` and the chosen `aggregator` column (e.g. age bin, gender).
+    For each run it builds a destination×category table of row-counts (one row = one individual).
+    Finally it averages those tables across runs and plots.
     
     Parameters
     ----------
-    outdirs : list of str
-        List of run directories (each containing a migration.log file).
     aggregator : str, optional
         The column used for stacking the bars (e.g., 'age' or 'gender').
         This is supplied at runtime via your config (FUMEheader); default is 'age'.
@@ -325,118 +308,134 @@ def plotStackedBar(outdirs, aggregator='age_binned', filters=None, save_fig=True
         e.g. [('gender', '==', 'f'), ('age', '>=', 18)].
     save_fig : bool, optional
         Whether to save the figure as a PNG file; default is True.
-    plot_folder : str, optional
-        The folder in which to save the resulting figure; default is "plots".
     """
+    # default empty filters list
     if filters is None:
         filters = []
     
-    per_run = []
-    # 1. build one pivot table per run
-    for d in outdirs:
-        migration_file = os.path.join(d, "migration.log")
-        if not os.path.exists(migration_file):
-            print(f"[WARNING] No migration.log in {d}, skipping.")
+    per_run_tables = []  # will collect one pivot‐table DataFrame per run
+
+    # 1. Process each run individually
+    for run_dir in outdirs:
+        log_path = os.path.join(run_dir, "migration.log")
+        if not os.path.exists(log_path):
+            print(f"[WARNING] No migration.log in {run_dir} – skipping.")
             continue
 
-        df = pd.read_csv(migration_file)
+        df = pd.read_csv(log_path)  # read this run’s log
 
-        # apply any filters
+        # apply each user‐specified filter in turn
         for col, op, val in filters:
-            if op == "==":   df = df[df[col] == val]
-            elif op == "!=": df = df[df[col] != val]
-            elif op == ">":  df = df[df[col] >  val]
-            elif op == "<":  df = df[df[col] <  val]
-            elif op == ">=": df = df[df[col] >= val]
-            elif op == "<=": df = df[df[col] <= val]
+            if op == "==":
+                df = df[df[col] == val]
+            elif op == "!=":
+                df = df[df[col] != val]
+            elif op == ">":
+                df = df[df[col] > val]
+            elif op == "<":
+                df = df[df[col] < val]
+            elif op == ">=":
+                df = df[df[col] >= val]
+            elif op == "<=":
+                df = df[df[col] <= val]
             else:
-                print(f"[WARNING] unsupported filter {col}{op}{val}")
+                print(f"[WARNING] Unsupported filter {col}{op}{val}, skipping.")
 
-        # age‑bin special case
+        # if aggregator is 'age', create age bins
         if aggregator == "age":
             if "age" not in df.columns:
-                print("[ERROR] need raw 'age' to bin")
+                print("[ERROR] Cannot bin 'age' – no 'age' column.")
                 return
-            bins  = [0,17,29,49,64,200]
-            labels= ["0-17","18-29","30-49","50-64","65+"]
-            df['age_binned'] = pd.cut(df['age'],
-                                      bins=bins,
-                                      labels=labels,
-                                      right=True)
-            agg = 'age_binned'
+            # define custom bins and labels
+            bins   = [0, 17, 29, 49, 64, 200]
+            labels = ["0-17", "18-29", "30-49", "50-64", "65+"]
+            df['age_binned'] = pd.cut(df['age'], bins=bins, labels=labels, right=True)
+            agg_col = 'age_binned'
         else:
-            agg = aggregator
+            agg_col = aggregator  # use the column
 
-        # sanity check
-        if agg not in df.columns or 'destination' not in df.columns:
-            print(f"[ERROR] missing '{agg}' or 'destination' in data")
+        # check if both columns present
+        if agg_col not in df.columns or 'destination' not in df.columns:
+            print(f"[ERROR] Missing '{agg_col}' or 'destination' in data – aborting.")
             return
 
-        # group & unstack → destination × agg
-        pt = df.groupby(['destination', agg]).size()\
-               .unstack(fill_value=0)
+        # build one pivot: rows=destination, cols=agg_col, values=row-counts
+        pivot = (
+            df
+            .groupby(['destination', agg_col])
+            .size()              # count rows per pair
+            .unstack(fill_value=0)  # make wide table, fill missing combos with 0
+        )
+        per_run_tables.append(pivot)
 
-        per_run.append(pt)
-
-    if not per_run:
-        print("[INFO] no data found")
+    # if no valid runs give error
+    if not per_run_tables:
+        print("[INFO] No valid data found in any run.")
         return
 
-    # 2. align onto common row/col index
-    all_dests = sorted(set.union(*[set(pt.index) for pt in per_run]))
-    all_cats  = sorted(set.union(*[set(pt.columns) for pt in per_run]))
+    # 2. Align all runs onto the same destinations & categories
+    all_destinations = sorted(set().union(*(t.index for t in per_run_tables)))
+    all_categories   = sorted(set().union(*(t.columns for t in per_run_tables)))
 
-    # 3) stack into array runs×D×C
-    R = len(per_run)
-    D = len(all_dests)
-    C = len(all_cats)
-    arr = np.zeros((R,D,C), float)
-    for i, pt in enumerate(per_run):
-        pt2 = pt.reindex(index=all_dests, columns=all_cats, fill_value=0)
-        arr[i,:,:] = pt2.values
+    # 3. Stack into a 3D array (runs × destinations × categories)
+    R = len(per_run_tables)
+    D = len(all_destinations)
+    C = len(all_categories)
+    arr = np.zeros((R, D, C), dtype=float)
 
-    # 4. mean across runs
-    mean_vals = arr.mean(axis=0)
-    mean_df   = pd.DataFrame(mean_vals,
-                             index=all_dests,
-                             columns=all_cats)
+    for i, tbl in enumerate(per_run_tables):
+        # re-index to full grid, fill missing with 0
+        tbl_full = tbl.reindex(index=all_destinations,
+                               columns=all_categories,
+                               fill_value=0)
+        arr[i, :, :] = tbl_full.values
 
-    # Matplotlib PNG
-    plt.figure(figsize=(12,7))
+    # 4. Compute the mean across runs
+    mean_matrix = arr.mean(axis=0)
+    mean_df     = pd.DataFrame(mean_matrix,
+                               index=all_destinations,
+                               columns=all_categories)
+
+    # 5. Static PNG via Matplotlib
+    plt.figure(figsize=(12, 7))
     mean_df.plot(kind='bar', stacked=True, ax=plt.gca())
     plt.title(f"Mean Arrivals by Destination, Stacked by '{aggregator}'")
     plt.xlabel("Destination (Ukrainian Oblast)")
-    plt.ylabel("Mean No. of Individuals (across ensemble)")
+    plt.ylabel("Mean No. of Individuals (per run)")
     plt.xticks(rotation=45, ha='right')
     plt.tight_layout()
 
+    # ensure output folder exists
     Path(plot_folder).mkdir(parents=True, exist_ok=True)
-    png_path = os.path.join(plot_folder, f"stacked_bar_{aggregator}.png")
+    png_out = os.path.join(plot_folder, f"stacked_bar_{aggregator}.png")
     if save_fig:
-        plt.savefig(png_path, dpi=150)
-        print(f"[INFO] saved PNG {png_path}")
-    plt.show()
+        plt.savefig(png_out, dpi=150)
+        print(f"[INFO] Saved PNG to {png_out}")
     plt.close()
 
-    # Plotly HTML
+    # 6. Interactive HTML via Plotly
     mean_df.index.name = "destination"
-    
-    df_melt = mean_df.reset_index().melt(id_vars="destination", var_name=aggregator, value_name="mean_count")
+    df_long = mean_df.reset_index().melt(
+        id_vars="destination",
+        var_name=aggregator,
+        value_name="mean_count"
+    )
 
-    fig = px.bar(df_melt,
-                 x="destination",
-                 y="mean_count",
-                 color=aggregator,
-                 barmode="stack",
-                 title=f"Mean Arrivals by Destination, Stacked by '{aggregator}'",
-                 labels={"mean_count":"Mean No. of Individuals",
-                         "destination":"Destination"})
+    fig = px.bar(
+        df_long,
+        x="destination",
+        y="mean_count",
+        color=aggregator,
+        barmode="stack",
+        title=f"Mean Arrivals by Destination, Stacked by '{aggregator}'",
+        labels={"mean_count": "Mean No. of Individuals",
+                "destination": "Destination"}
+    )
     fig.update_layout(xaxis_tickangle=-45)
 
-    html_path = os.path.join(plot_folder, f"stacked_bar_{aggregator}.html")
-    fig.write_html(html_path)
-    print(f"[INFO] saved HTML {html_path}")
-    fig.show()
+    html_out = os.path.join(plot_folder, f"stacked_bar_{aggregator}.html")
+    fig.write_html(html_out)
+    print(f"[INFO] Saved HTML to {html_out}")
 
 
 def plotLineOverTime(outdirs, primary_filter_column='source', primary_filter_value=None, line_aggregator='gender', filters=None, save_fig=True, plot_folder="plots", show_quartiles=False):
@@ -579,7 +578,7 @@ def plotLineOverTime(outdirs, primary_filter_column='source', primary_filter_val
                         f"fan_{primary_filter_column}_{primary_filter_value}_{line_aggregator}.html")
     fig.write_html(html)
     print(f"[INFO] saved HTML {html}")
-    fig.show()
+    #fig.show()
 
 
 def plotNamedSingleByTimestep(code, outdirs, plot_type, FUMEheader, filters=[], aggregator=None):
