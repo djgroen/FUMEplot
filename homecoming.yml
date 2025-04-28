@@ -2,5 +2,8 @@
 #  modes: ["loc_lines"]
 
 NamedSingleByTimestep:
-  modes: ["loc_lines"]
-  filters: ["gender == m","gender == f"]
+  modes: ["line_chart"]
+  filters: ["None"]
+  disaggregator: ["gender"]
+  primary_filter_column: ["destination"]
+  primary_filter_value: ["kyiv"]

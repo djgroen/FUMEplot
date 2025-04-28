@@ -312,6 +312,8 @@ def plotStackedBar(outdirs, aggregator='age_binned', filters=None, save_fig=True
     # default empty filters list
     if filters is None:
         filters = []
+    if isinstance(aggregator, (list, tuple)) and aggregator:
+        aggregator = aggregator[0]
     
     per_run_tables = []  # will collect one pivot‐table DataFrame per run
 
@@ -438,12 +440,18 @@ def plotStackedBar(outdirs, aggregator='age_binned', filters=None, save_fig=True
     print(f"[INFO] Saved HTML to {html_out}")
 
 
-def plotLineOverTime(outdirs, primary_filter_column='source', primary_filter_value=None, line_aggregator='gender', filters=None, save_fig=True, plot_folder="plots", show_quartiles=False):
+def plotLineOverTime(outdirs, primary_filter_column='source', primary_filter_value=None, line_disaggregator='gender', filters=None, save_fig=True, plot_folder="plots", show_quartiles=False):
     """
     Fan plot of total migrations over time (median ± IQR across ensemble runs).
     """
     if filters is None:
         filters = []
+    if isinstance(line_aggregator, (list,tuple)) and line_aggregator:
+        line_aggregator = line_aggregator[0]
+    if isinstance(primary_filter_column, (list, tuple)) and primary_filter_column:
+        primary_filter_column = primary_filter_column[0]
+    if isinstance(primary_filter_value, (list, tuple)) and primary_filter_value:
+        primary_filter_value = primary_filter_value[0]
         
     # 1. Read each run separately
     per_run = []
@@ -581,16 +589,29 @@ def plotLineOverTime(outdirs, primary_filter_column='source', primary_filter_val
     #fig.show()
 
 
-def plotNamedSingleByTimestep(code, outdirs, plot_type, FUMEheader, filters=[], aggregator=None):
-    aggregator = getattr(FUMEheader, 'aggregator', 'gender')
-    filters = getattr(FUMEheader, 'filters', [])
+def plotNamedSingleByTimestep(code, outdirs, plot_type, FUMEheader, filters=[], disaggregator=None, primary_filter_column=None, primary_filter_value=None):
+    
+    if isinstance(disaggregator, (list, tuple)) and disaggregator:
+        disaggregator = disaggregator[0]
+    if disaggregator is None:
+        disaggregator = getattr(FUMEheader, 'disaggregator', 'gender')
+        if isinstance(disaggregator, (list, tuple)) and disaggregator:
+            disaggregator = disaggregator[0]
     
     # e.g. primary_filter_column = "source" or "destination"
-    primary_filter_column = getattr(FUMEheader, 'primary_filter_column', 'source')
-    # e.g. primary_filter_value = "germany" or "ukr_kyivska" 
-    primary_filter_value = getattr(FUMEheader, 'primary_filter_value', 'poland')
+    if primary_filter_column is None:
+        primary_filter_column = getattr(FUMEheader, 'primary_filter_column', 'source')
+    if isinstance(primary_filter_column, (list, tuple)) and primary_filter_column:
+        primary_filter_column = primary_filter_column[0]
     
-    # ensembleSize = 0
+    # e.g. primary_filter_value = "germany" or "ukr_kyivska" 
+    if primary_filter_value is None:
+        primary_filter_value = getattr(FUMEheader, 'primary_filter_value', 'germany')
+    if isinstance(primary_filter_value, (list, tuple)) and primary_filter_value:
+        primary_filter_value = primary_filter_value[0]
+       
+    filters = getattr(FUMEheader, 'filters', [])
+    
     ensembleSize = 8
     
     saving=True
@@ -605,10 +626,10 @@ def plotNamedSingleByTimestep(code, outdirs, plot_type, FUMEheader, filters=[], 
         plotMigrationSankey(outdirs, save_fig=saving, plot_folder=plotfolder)
         
     if plot_type == "stacked_bar" or plot_type == "all":
-        plotStackedBar(outdirs=outdirs, aggregator=aggregator, filters=filters, save_fig=saving, plot_folder=plotfolder
+        plotStackedBar(outdirs=outdirs, disaggregator=disaggregator, filters=filters, save_fig=saving, plot_folder=plotfolder
         )
     if plot_type == "line_chart" or plot_type == "all":
-        plotLineOverTime(outdirs=outdirs, primary_filter_column=primary_filter_column, primary_filter_value=primary_filter_value, line_aggregator=aggregator, filters=filters, save_fig=saving, plot_folder=plotfolder
+        plotLineOverTime(outdirs=outdirs, primary_filter_column=primary_filter_column, primary_filter_value=primary_filter_value, line_disaggregator=disaggregator, filters=filters, save_fig=saving, plot_folder=plotfolder
         )
 
     # Show plot
