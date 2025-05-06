@@ -33,7 +33,7 @@ def load_config_path(results_dir, **args):
             print(f"ERROR: no variable job_config_path_local found in {env_file_name}.")
             sys.exit()
 
-    for name in os.listdir(runsdir):
+    for name in os.listd ir(runsdir):
         env_file_name = f"{runsdir}/{name}/env.yml"
         with open(env_file_name, 'r') as file:
             # Read each line in the file

@@ -612,7 +612,7 @@ def plotNamedSingleByTimestep(code, outdirs, plot_type, FUMEheader, filters=[], 
        
     filters = getattr(FUMEheader, 'filters', [])
     
-    ensembleSize = 8
+    #ensembleSize = 8
     
     saving=True
     plotfolder='../../EnsemblePlots/'+code+'Plots'
