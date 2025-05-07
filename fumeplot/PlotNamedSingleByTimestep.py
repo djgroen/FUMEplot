@@ -63,9 +63,9 @@ def plotCounts(plot_num, all_counts, save_fig, plot_folder, combine_plots_pdf):
     # Plot histogram with error bars
     # #fig= plt.figure(plot_num+1, figsize=(10,6))
     # #ax = fig.add_subplot(111)
-    #fig, ax = plt.subplots(num=plot_num+1, figsize=(10,6))
+    fig, ax = plt.subplots(num=plot_num+1, figsize=(10,6))
     # - LatexPlotLib version
-    fig, ax = lpl.subplots(num=plot_num+1)
+    #fig, ax = lpl.subplots(num=plot_num+1)
 
     # plt.bar(mean_counts.index, 
     #         mean_counts.values, 
@@ -589,7 +589,7 @@ def plotLineOverTime(outdirs, primary_filter_column='source', primary_filter_val
     #fig.show()
 
 
-def plotNamedSingleByTimestep(code, outdirs, plot_type, FUMEheader, filters=[], disaggregator=None, primary_filter_column=None, primary_filter_value=None):
+def plotNamedSingleByTimestep(code, outdirs, plot_type, FUMEheader, filters=[], disaggregator=None, primary_filter_column=None, primary_filter_value=None, plot_path='../..'):
    
     print(f"[FUMEplot]: plot_type set to {plot_type}.", file=sys.stderr)
 
@@ -617,7 +617,7 @@ def plotNamedSingleByTimestep(code, outdirs, plot_type, FUMEheader, filters=[], 
     #ensembleSize = 8
     
     saving=True
-    plotfolder='../../EnsemblePlots/'+code+'Plots'
+    plotfolder=plot_path+'/EnsemblePlots/'+code+'Plots'
     Path(plotfolder).mkdir(parents=True, exist_ok=True)
     
     fi=0

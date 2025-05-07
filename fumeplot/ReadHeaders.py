@@ -95,5 +95,5 @@ def ReadOutHeaders(outdirs, mode="flee"):
             data_indices.append(-1) #indicates no data.
     
     
-    return FUMEheader(headers, sim_indices, data_indices, loc_names, y_label, combine_plots_pdf=True)
+    return FUMEheader(headers, sim_indices, data_indices, loc_names, y_label, combine_plots_pdf=False)
 

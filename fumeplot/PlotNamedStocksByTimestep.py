@@ -325,7 +325,7 @@ def animateLocationViolins(outdirs, plot_num, i, sim_indices, data_indices, loc_
     plt.close(fig)
 
 #main plotting script
-def plotNamedStocksByTimestep(code, outdirs, plot_type, FUMEheader):
+def plotNamedStocksByTimestep(code, outdirs, plot_type, FUMEheader, plot_path='../..'):
 
     headers = FUMEheader.headers
     sim_indices = FUMEheader.sim_indices
@@ -337,7 +337,7 @@ def plotNamedStocksByTimestep(code, outdirs, plot_type, FUMEheader):
     ensembleSize = 0
     
     saving=True
-    plotfolder='../../EnsemblePlots/'+code+'Plots'
+    plotfolder=plot_path+'/EnsemblePlots/'+code+'Plots'
     Path(plotfolder).mkdir(parents=True, exist_ok=True)
    
     fi = 0 #fig number
