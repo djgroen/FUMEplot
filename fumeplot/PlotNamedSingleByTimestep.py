@@ -63,7 +63,7 @@ def plotCounts(plot_num, all_counts, save_fig, plot_folder, combine_plots_pdf):
     # Plot histogram with error bars
     # #fig= plt.figure(plot_num+1, figsize=(10,6))
     # #ax = fig.add_subplot(111)
-    # fig, ax = plt.subplots(num=plot_num+1, figsize=(10,6))
+    #fig, ax = plt.subplots(num=plot_num+1, figsize=(10,6))
     # - LatexPlotLib version
     fig, ax = lpl.subplots(num=plot_num+1)
 
@@ -590,7 +590,9 @@ def plotLineOverTime(outdirs, primary_filter_column='source', primary_filter_val
 
 
 def plotNamedSingleByTimestep(code, outdirs, plot_type, FUMEheader, filters=[], disaggregator=None, primary_filter_column=None, primary_filter_value=None):
-    
+   
+    print(f"[FUMEplot]: plot_type set to {plot_type}.", file=sys.stderr)
+
     if isinstance(disaggregator, (list, tuple)) and disaggregator:
         disaggregator = disaggregator[0]
     if disaggregator is None:

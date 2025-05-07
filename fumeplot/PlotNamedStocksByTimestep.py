@@ -331,9 +331,9 @@ def plotNamedStocksByTimestep(code, outdirs, plot_type, FUMEheader):
     sim_indices = FUMEheader.sim_indices
     data_indices = FUMEheader.data_indices
     loc_names= FUMEheader.loc_names
-    y_label = FUMEheader.y_label
+    y_label = (FUMEheader.y_label).replace('#', 'Number')
     combine_plots_pdf = FUMEheader.combine_plots_pdf
-
+ 
     ensembleSize = 0
     
     saving=True
