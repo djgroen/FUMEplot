@@ -608,7 +608,7 @@ def plotNamedSingleByTimestep(code, outdirs, plot_type, FUMEheader, filters=[], 
     
     # e.g. primary_filter_value = "germany" or "ukr_kyivska" 
     if primary_filter_value is None:
-        primary_filter_value = getattr(FUMEheader, 'primary_filter_value', 'germany')
+        primary_filter_value = getattr(FUMEheader, 'primary_filter_value', None)
     if isinstance(primary_filter_value, (list, tuple)) and primary_filter_value:
         primary_filter_value = primary_filter_value[0]
        
