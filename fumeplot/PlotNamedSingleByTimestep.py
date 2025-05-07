@@ -65,7 +65,7 @@ def plotCounts(plot_num, all_counts, save_fig, plot_folder, combine_plots_pdf):
     # Plot histogram with error bars
     # #fig= plt.figure(plot_num+1, figsize=(10,6))
     # #ax = fig.add_subplot(111)
-    # fig, ax = plt.subplots(num=plot_num+1, figsize=(10,6))
+    #fig, ax = plt.subplots(num=plot_num+1, figsize=(10,6))
     # - LatexPlotLib version
     fig, ax = lpl.subplots(num=plot_num+1)
 
@@ -295,16 +295,16 @@ def plotMigrationSankey(outdirs, save_fig=True, plot_folder="plots"): # CHANGE S
             print(f"[ERROR] Couldn't write PNG: {e}")
 
         
-def plotStackedBar(outdirs, aggregator='age_binned', filters=None, save_fig=True, plot_folder="plots"):
+def plotStackedBar(outdirs, disaggregator='age_binned', filters=None, save_fig=True, plot_folder="plots"):
     """
     Reads every migration.log in `outdirs`, applies optional filters,
-    then groups by `destination` and the chosen `aggregator` column (e.g. age bin, gender).
+    then groups by `destination` and the chosen `disaggregator` column (e.g. age bin, gender).
     For each run it builds a destination×category table of row-counts (one row = one individual).
     Finally it averages those tables across runs and plots.
     
     Parameters
     ----------
-    aggregator : str, optional
+    disaggregator : str, optional
         The column used for stacking the bars (e.g., 'age' or 'gender').
         This is supplied at runtime via your config (FUMEheader); default is 'age'.
     filters : list of tuples or None
@@ -316,6 +316,8 @@ def plotStackedBar(outdirs, aggregator='age_binned', filters=None, save_fig=True
     # default empty filters list
     if filters is None:
         filters = []
+    if isinstance(disaggregator, (list, tuple)) and disaggregator:
+        disaggregator = disaggregator[0]
     
     per_run_tables = []  # will collect one pivot‐table DataFrame per run
 
@@ -345,8 +347,8 @@ def plotStackedBar(outdirs, aggregator='age_binned', filters=None, save_fig=True
             else:
                 print(f"[WARNING] Unsupported filter {col}{op}{val}, skipping.")
 
-        # if aggregator is 'age', create age bins
-        if aggregator == "age":
+        # if disaggregator is 'age', create age bins
+        if disaggregator == "age":
             if "age" not in df.columns:
                 print("[ERROR] Cannot bin 'age' – no 'age' column.")
                 return
@@ -356,7 +358,7 @@ def plotStackedBar(outdirs, aggregator='age_binned', filters=None, save_fig=True
             df['age_binned'] = pd.cut(df['age'], bins=bins, labels=labels, right=True)
             agg_col = 'age_binned'
         else:
-            agg_col = aggregator  # use the column
+            agg_col = disaggregator  # use the column
 
         # check if both columns present
         if agg_col not in df.columns or 'destination' not in df.columns:
@@ -403,7 +405,7 @@ def plotStackedBar(outdirs, aggregator='age_binned', filters=None, save_fig=True
     # 5. Static PNG via Matplotlib
     plt.figure(figsize=(12, 7))
     mean_df.plot(kind='bar', stacked=True, ax=plt.gca())
-    plt.title(f"Mean Arrivals by Destination, Stacked by '{aggregator}'")
+    plt.title(f"Mean Arrivals by Destination, Stacked by '{disaggregator}'")
     plt.xlabel("Destination (Ukrainian Oblast)")
     plt.ylabel("Mean No. of Individuals (per run)")
     plt.xticks(rotation=45, ha='right')
@@ -411,7 +413,7 @@ def plotStackedBar(outdirs, aggregator='age_binned', filters=None, save_fig=True
 
     # ensure output folder exists
     Path(plot_folder).mkdir(parents=True, exist_ok=True)
-    png_out = os.path.join(plot_folder, f"stacked_bar_{aggregator}.png")
+    png_out = os.path.join(plot_folder, f"stacked_bar_{disaggregator}.png")
     if save_fig:
         plt.savefig(png_out, dpi=150)
         print(f"[INFO] Saved PNG to {png_out}")
@@ -421,7 +423,7 @@ def plotStackedBar(outdirs, aggregator='age_binned', filters=None, save_fig=True
     mean_df.index.name = "destination"
     df_long = mean_df.reset_index().melt(
         id_vars="destination",
-        var_name=aggregator,
+        var_name=disaggregator,
         value_name="mean_count"
     )
 
@@ -429,25 +431,31 @@ def plotStackedBar(outdirs, aggregator='age_binned', filters=None, save_fig=True
         df_long,
         x="destination",
         y="mean_count",
-        color=aggregator,
+        color=disaggregator,
         barmode="stack",
-        title=f"Mean Arrivals by Destination, Stacked by '{aggregator}'",
+        title=f"Mean Arrivals by Destination, Stacked by '{disaggregator}'",
         labels={"mean_count": "Mean No. of Individuals",
                 "destination": "Destination"}
     )
     fig.update_layout(xaxis_tickangle=-45)
 
-    html_out = os.path.join(plot_folder, f"stacked_bar_{aggregator}.html")
+    html_out = os.path.join(plot_folder, f"stacked_bar_{disaggregator}.html")
     fig.write_html(html_out)
     print(f"[INFO] Saved HTML to {html_out}")
 
 
-def plotLineOverTime(outdirs, primary_filter_column='source', primary_filter_value=None, line_aggregator='gender', filters=None, save_fig=True, plot_folder="plots", show_quartiles=False):
+def plotLineOverTime(outdirs, primary_filter_column='source', primary_filter_value=None, line_disaggregator='gender', filters=None, save_fig=True, plot_folder="plots", show_quartiles=False):
     """
     Fan plot of total migrations over time (median ± IQR across ensemble runs).
     """
     if filters is None:
         filters = []
+    if isinstance(line_disaggregator, (list,tuple)) and line_disaggregator:
+        line_disaggregator = line_disaggregator[0]
+    if isinstance(primary_filter_column, (list, tuple)) and primary_filter_column:
+        primary_filter_column = primary_filter_column[0]
+    if isinstance(primary_filter_value, (list, tuple)) and primary_filter_value:
+        primary_filter_value = primary_filter_value[0]
         
     # 1. Read each run separately
     per_run = []
@@ -468,13 +476,13 @@ def plotLineOverTime(outdirs, primary_filter_column='source', primary_filter_val
             # ... (add your other ops)
 
         # if we want age‐bins instead of raw ages:
-        if line_aggregator=='age_binned':
+        if line_disaggregator=='age_binned':
             bins  = [0,17,29,49,64,200]
             labels= ["0-17","18-29","30-49","50-64","65+"]
             df['age_bin'] = pd.cut(df['age'], bins=bins, labels=labels, right=True)
             agg = 'age_bin'
         else:
-            agg = line_aggregator
+            agg = line_disaggregator
 
         # now group by time × category
         grp = df.groupby(['time', agg]).size().unstack(fill_value=0)
@@ -530,7 +538,7 @@ def plotLineOverTime(outdirs, primary_filter_column='source', primary_filter_val
 
     Path(plot_folder).mkdir(exist_ok=True, parents=True)
     png = os.path.join(plot_folder,
-                       f"fan_{primary_filter_column}_{primary_filter_value}_{line_aggregator}.png")
+                       f"fan_{primary_filter_column}_{primary_filter_value}_{line_disaggregator}.png")
     if save_fig:
         plt.savefig(png, dpi=150)
         print(f"[INFO] saved PNG {png}")
@@ -544,7 +552,7 @@ def plotLineOverTime(outdirs, primary_filter_column='source', primary_filter_val
         for j, cat in enumerate(all_cats):
             rows.append({
                 'time': t,
-                line_aggregator: cat,
+                line_disaggregator: cat,
                 'median': med[ti,j],
                 'q25':    q25[ti,j],
                 'q75':    q75[ti,j]
@@ -554,7 +562,7 @@ def plotLineOverTime(outdirs, primary_filter_column='source', primary_filter_val
     fig = px.line(dfp,
                   x='time',
                   y='median',
-                  color=line_aggregator,
+                  color=line_disaggregator,
                   title=("Migrations Over Time<br>"
                          f"(filtered {primary_filter_column}="
                          f"{primary_filter_value or 'All'})"),
@@ -562,7 +570,7 @@ def plotLineOverTime(outdirs, primary_filter_column='source', primary_filter_val
     # add the shading for each category
     if show_quartiles:
         for cat in all_cats:
-            dsub = dfp[dfp[line_aggregator]==cat]
+            dsub = dfp[dfp[line_disaggregator]==cat]
             fig.add_traces(px.scatter(dsub, x='time', y='q25').update_traces(
                 line=dict(width=0),
                 fill='tonexty',
@@ -579,23 +587,38 @@ def plotLineOverTime(outdirs, primary_filter_column='source', primary_filter_val
     fig.update_layout(legend=dict(itemsizing='constant'),
                       xaxis_type='linear')
     html = os.path.join(plot_folder,
-                        f"fan_{primary_filter_column}_{primary_filter_value}_{line_aggregator}.html")
+                        f"fan_{primary_filter_column}_{primary_filter_value}_{line_disaggregator}.html")
     fig.write_html(html)
     print(f"[INFO] saved HTML {html}")
     #fig.show()
 
 
-def plotNamedSingleByTimestep(code, outdirs, plot_type, FUMEheader, filters=[], aggregator=None):
-    aggregator = getattr(FUMEheader, 'aggregator', 'gender')
-    filters = getattr(FUMEheader, 'filters', [])
+def plotNamedSingleByTimestep(code, outdirs, plot_type, FUMEheader, filters=[], disaggregator=None, primary_filter_column=None, primary_filter_value=None):
+   
+    print(f"[FUMEplot]: plot_type set to {plot_type}.", file=sys.stderr)
+
+    if isinstance(disaggregator, (list, tuple)) and disaggregator:
+        disaggregator = disaggregator[0]
+    if disaggregator is None:
+        disaggregator = getattr(FUMEheader, 'disaggregator', 'gender')
+        if isinstance(disaggregator, (list, tuple)) and disaggregator:
+            disaggregator = disaggregator[0]
     
     # e.g. primary_filter_column = "source" or "destination"
-    primary_filter_column = getattr(FUMEheader, 'primary_filter_column', 'source')
-    # e.g. primary_filter_value = "germany" or "ukr_kyivska" 
-    primary_filter_value = getattr(FUMEheader, 'primary_filter_value', 'poland')
+    if primary_filter_column is None:
+        primary_filter_column = getattr(FUMEheader, 'primary_filter_column', 'source')
+    if isinstance(primary_filter_column, (list, tuple)) and primary_filter_column:
+        primary_filter_column = primary_filter_column[0]
     
-    # ensembleSize = 0
-    ensembleSize = 8
+    # e.g. primary_filter_value = "germany" or "ukr_kyivska" 
+    if primary_filter_value is None:
+        primary_filter_value = getattr(FUMEheader, 'primary_filter_value', 'germany')
+    if isinstance(primary_filter_value, (list, tuple)) and primary_filter_value:
+        primary_filter_value = primary_filter_value[0]
+       
+    filters = getattr(FUMEheader, 'filters', [])
+    
+    #ensembleSize = 8
     
     saving=True
     plotfolder='../../EnsemblePlots/'+code+'Plots'
@@ -609,10 +632,10 @@ def plotNamedSingleByTimestep(code, outdirs, plot_type, FUMEheader, filters=[], 
         plotMigrationSankey(outdirs, save_fig=saving, plot_folder=plotfolder)
         
     if plot_type == "stacked_bar" or plot_type == "all":
-        plotStackedBar(outdirs=outdirs, aggregator=aggregator, filters=filters, save_fig=saving, plot_folder=plotfolder
+        plotStackedBar(outdirs=outdirs, disaggregator=disaggregator, filters=filters, save_fig=saving, plot_folder=plotfolder
         )
     if plot_type == "line_chart" or plot_type == "all":
-        plotLineOverTime(outdirs=outdirs, primary_filter_column=primary_filter_column, primary_filter_value=primary_filter_value, line_aggregator=aggregator, filters=filters, save_fig=saving, plot_folder=plotfolder
+        plotLineOverTime(outdirs=outdirs, primary_filter_column=primary_filter_column, primary_filter_value=primary_filter_value, line_disaggregator=disaggregator, filters=filters, save_fig=saving, plot_folder=plotfolder
         )
 
     # Show plot
@@ -641,7 +664,7 @@ if __name__ == "__main__":
     
     plotNamedSingleByTimestep(code, outdirs, plot_type, FUMEheaders)
     '''
-    # CONFIG HEADER (reads your .yml aggregator / filters / modes)
+    # CONFIG HEADER (reads your .yml disaggregator / filters / modes)
     FUMEheader = ReadHeaders.ReadOutHeaders(outdirs, mode=code)
     # if you still need move‑log metadata later, you can load it too:
     move_header = ReadHeaders.ReadMovelogHeaders(outdirs, mode=code)

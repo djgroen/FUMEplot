@@ -1,6 +1,9 @@
-#NamedStocksByTimestep:
-#  modes: ["loc_lines"]
-
-NamedSingleByTimestep:
+NamedStocksByTimestep:
   modes: ["loc_lines"]
-  filters: ["gender == m","gender == f"]
+
+#NamedSingleByTimestep:
+#  modes: ["line_chart"]
+#  filters: ["None"]
+#  disaggregator: ["gender"]
+#  primary_filter_column: ["destination"]
+#  primary_filter_value: ["kyiv"]
