@@ -38,7 +38,9 @@ from contextlib import nullcontext
 
 import latexplotlib as lpl
 lpl.style.use('latex12pt')
-latex_doc_size = (347.12354, 549.138)
+latex_doc_size = (347.12354, 549.138) 
+columns_per_page = 1.
+latex_doc_size = tuple(x / columns_per_page for x in latex_doc_size)
 lpl.size.set(*latex_doc_size)
 
 
@@ -76,7 +78,8 @@ def plotCounts(plot_num, all_counts, save_fig, plot_folder, combine_plots_pdf):
 
     ax.boxplot(
                 combined_counts,
-                tick_labels=_formatLabels(mean_counts.index),
+                #tick_labels=_formatLabels(mean_counts.index), # matplotlib >=3.9
+                labels=_formatLabels(mean_counts.index), # matplotlib <3.9
                 patch_artist=True, 
                 #notch=True,
                 bootstrap=1000,
@@ -85,14 +88,14 @@ def plotCounts(plot_num, all_counts, save_fig, plot_folder, combine_plots_pdf):
                 showbox=True,
                 showcaps=True,
                 showfliers=True,
-                medianprops=dict(color='blue'),
-                meanprops=dict(color='black'),
-                boxprops=dict(facecolor='skyblue'),
-                whiskerprops=dict(color='blue'),
-                capprops=dict(color='blue',),
+                medianprops=dict(color='blue', linewidth=0.85),
+                meanprops=dict(color='black', linewidth=0.85, linestyle='dashed'),
+                boxprops=dict(facecolor='skyblue', linewidth=0.85),
+                whiskerprops=dict(color='blue', linewidth=0.75),
+                capprops=dict(color='blue', linewidth=0.75),
                 capwidths=0.3,
                 flierprops=dict(marker='o', markerfacecolor='blue', markersize=2, linestyle='none'),
-                label='Entries',
+                #label='Entries', # matplotlib >=3.9
                 )
 
     # Labels and title
@@ -278,6 +281,7 @@ def plotMigrationSankey(outdirs, save_fig=True, plot_folder="plots"): # CHANGE S
     
     # 7. Save outputs and create png
     os.makedirs(plot_folder, exist_ok=True)
+
     html_path = os.path.join(plot_folder, "migration_sankey_mean.html")
     fig.write_html(html_path)
     print(f"[INFO] Sankey HTML saved to {html_path}")
