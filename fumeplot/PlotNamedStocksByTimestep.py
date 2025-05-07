@@ -11,6 +11,13 @@ import matplotlib.lines as mlines
 from matplotlib.backends.backend_pdf import PdfPages
 from contextlib import nullcontext
 
+import latexplotlib as lpl
+lpl.style.use('latex12pt')
+latex_doc_size = (347.12354, 549.138)
+columns_per_page = 2.
+latex_doc_size = tuple(x / columns_per_page for x in latex_doc_size)
+lpl.size.set(*latex_doc_size)
+
 
 def _formatLabels(labels):
 
@@ -30,40 +37,43 @@ def plotLocation(outdirs, plot_num, loc_index, sim_index, data_index, loc_names,
         ensembleSize += 1
     
     # plot all waveforms
-    fig = plt.figure(plot_num+1)
+    # fig = plt.figure(plot_num+1)
+    # ax = fig.add_subplot(111)
+    # - LatexPlotlib version
+    fig, ax = lpl.subplots(num=plot_num+1)
     
     # plot individual ensemble members
     for i in range(ensembleSize):
-        plt.plot(dfTest[i],'k', alpha=0.15)
+        ax.plot(dfTest[i],'k', alpha=0.15)
         #print(f"size of dfTest[i]: {len(dfTest[i])}") #debugging
 
     # plot ensemble mean
-    plt.plot(np.mean(dfTest,axis=0), 'maroon', label='Ensemble Mean')
+    ax.plot(np.mean(dfTest,axis=0), 'maroon', label='Ensemble Mean')
 
     # plot the reference data if available
     if data_index > 0:
-        plt.plot(df.iloc[:, data_index], 'b-', label='UN Data')
+        ax.plot(df.iloc[:, data_index], 'b-', label='UN Data')
         #print(f"sizes of dfTest and data: {len(dfTest[0])}, {len(df.iloc[:, data_index])}") #debugging
 
     # set up legend
-    handles, labels = plt.gca().get_legend_handles_labels()
+    handles, labels = ax.get_legend_handles_labels()
     handles.append(mlines.Line2D([], [], color='black', linestyle='-', label='Ensemble Members'))
     labels.append('Ensemble Members')
-    plt.legend(handles=handles, labels=labels, loc='best')
+    ax.legend(handles=handles, labels=labels, loc='best')
     
     # set up formatting
-    plt.xlabel('Day')
-    plt.ylabel(y_label)
-    plt.title(str(loc_names[loc_index]))
+    ax.set_xlabel('Day')
+    ax.set_ylabel(y_label)
+    ax.set_title(str(loc_names[loc_index]))
 
-    plt.grid(visible=True, which='both', axis='both', linestyle='-', linewidth=0.33,)
-    plt.tight_layout()
+    ax.grid(visible=True, which='both', axis='both', linestyle='-', linewidth=0.33)
+    #plt.tight_layout()
     
     # save the plot
     if combine_plots_pdf:
         combine_plots_pdf.savefig(fig)
     if save_fig:
-        plt.savefig(plot_folder+'/'+str(loc_names[loc_index]).replace(" ", "").replace("#", "Num")+'_Ensemble.png')
+        fig.savefig(plot_folder+'/'+str(loc_names[loc_index]).replace(" ", "").replace("#", "Num")+'_Ensemble.png')
 
     plt.close(fig)
 
@@ -78,40 +88,43 @@ def plotLocationSTDBound(outdirs, plot_num, loc_index, sim_index, data_index, lo
         ensembleSize += 1
     
     # plot all waveforms
-    fig = plt.figure(plot_num+1)
+    # fig = plt.figure(plot_num+1)
+    # ax = fig.add_subplot(111)
+    # - LatexPlotlib version
+    fig, ax = lpl.subplots(num=plot_num+1)
     
     # plot simulation ensemble mean
-    plt.plot(np.mean(dfTest,axis=0),'maroon',label='Ensemble Mean')
+    ax.plot(np.mean(dfTest,axis=0),'maroon',label='Ensemble Mean')
 
     # plot simulation ensemble mean +/- 1 standard deviation
-    plt.fill_between(np.linspace(0,len(dfTest[0]),len(dfTest[0])), 
+    ax.fill_between(np.linspace(0,len(dfTest[0]),len(dfTest[0])), 
                                  np.mean(dfTest,axis=0) - np.std(dfTest,axis=0), 
                                  np.mean(dfTest,axis=0) + np.std(dfTest,axis=0), 
                                  where=np.ones(len(dfTest[0])), alpha=0.3, color='maroon', label=r'Mean $\pm$ 1 STD')
     #TODO: add 2,3 std deviations, percentiles, absolute min/max, mean error etc.
-    plt.fill_between(np.linspace(0,len(dfTest[0]),len(dfTest[0])),
+    ax.fill_between(np.linspace(0,len(dfTest[0]),len(dfTest[0])),
                                 np.max(dfTest,axis=0),
                                 np.min(dfTest,axis=0),
                                 where=np.ones(len(dfTest[0])), alpha=0.1, color='maroon', label='Min - Max')
     
     # plot reference data if available
     if data_index > 0:
-        plt.plot(df.iloc[:, data_index],'b-', label='UN Data')
+        ax.plot(df.iloc[:, data_index],'b-', label='UN Data')
 
     # set up formatting
-    plt.legend(loc='best')
-    plt.xlabel('Day')
-    plt.ylabel(y_label)
-    plt.title(str(loc_names[loc_index]))
+    ax.legend(loc='best')
+    ax.set_xlabel('Day')
+    ax.set_ylabel(y_label)
+    ax.set_title(str(loc_names[loc_index]))
 
-    plt.grid(visible=True, which='both', axis='both', linestyle='-', linewidth=0.33,)
-    plt.tight_layout()
+    ax.grid(visible=True, which='both', axis='both', linestyle='-', linewidth=0.33,)
+    #plt.tight_layout()
      
     # save the plot
     if combine_plots_pdf:
         combine_plots_pdf.savefig(fig)
     if save_fig:
-        plt.savefig(plot_folder+'/'+str(loc_names[loc_index]).replace(" ", "").replace("#", "Num")+'_std.png')
+        fig.savefig(plot_folder+'/'+str(loc_names[loc_index]).replace(" ", "").replace("#", "Num")+'_std.png')
 
     plt.close(fig)
 
@@ -133,23 +146,26 @@ def plotLocationDifferences(outdirs, plot_num, loc_index, sim_index, data_index,
              f'ARD = {ard:.2f}')
     
     # plot all waveforms
-    fig = plt.figure(plot_num+1)
+    # fig = plt.figure(plot_num+1)
+    # ax = fig.add_subplot(111)
+    # - LatexPlotlib version
+    fig, ax = lpl.subplots(num=plot_num+1)
     
-    plt.plot(np.mean(dfTest,axis=0) - df.iloc[:, data_index],'black')
+    ax.plot(np.mean(dfTest,axis=0) - df.iloc[:, data_index],'black')
         
-    plt.plot([],label=stats)
-    plt.legend(handlelength=0)
+    ax.plot([],label=stats)
+    ax.legend(handlelength=0)
     
-    plt.xlabel('Day')
-    plt.ylabel('Difference (sim - observed)')
-    plt.title(str(loc_names[loc_index]))
-    plt.tight_layout()
+    ax.set_xlabel('Day')
+    ax.set_ylabel('Difference (sim - observed)')
+    ax.set_title(str(loc_names[loc_index]))
+    #plt.tight_layout()
  
     # save the plot
     if combine_plots_pdf:
         combine_plots_pdf.savefig(fig)
     if save_fig:
-        plt.savefig(plot_folder+'/'+str(loc_names[loc_index]).replace(" ", "").replace("#", "Num")+'_Differences.png')
+        fig.savefig(plot_folder+'/'+str(loc_names[loc_index]).replace(" ", "").replace("#", "Num")+'_Differences.png')
 
 def adjacent_values(vals, q1, q3):
     upper_adjacent_value = q3 + (q3 - q1) * 1.5
@@ -192,7 +208,9 @@ def animateLocationHistogram(outdirs, plot_num, loc_index, sim_index, data_index
             return (hist)
         
     #fig = plt.figure(plot_num+1)
-    fig, ax = plt.subplots()
+    #fig, ax = plt.subplots()
+    # - LatexPlotlib version
+    fig, ax = lpl.subplots(num=plot_num+1)
 
     ax.hist([item[0] for item in dfTest], bins=10, color='c', edgecolor='k', alpha=0.65, label='Ensemble Data')
 
@@ -273,7 +291,7 @@ def animateLocationViolins(outdirs, plot_num, i, sim_indices, data_indices, loc_
 
         # set up formatting
         ax.set_title(f"{y_label} - Day {i}")
-        ax.set(xlabel='Category', ylabel='# of Observations')
+        ax.set(xlabel='Category', ylabel='\# of Observations')
         ax.yaxis.grid(True)
         ax.set_xticks([y+1 for y in range(len(sim_indices))])
         ax.set_xticklabels(loc_names) #as old version of matplotlib
@@ -283,7 +301,10 @@ def animateLocationViolins(outdirs, plot_num, i, sim_indices, data_indices, loc_
         return (hist)
         
     #fig = plt.figure(plot_num+1)
-    fig, ax = plt.subplots()
+    #fig, ax = plt.subplots()
+    # - LatexPlotlib version
+    fig, ax = lpl.subplots(num=plot_num+1)
+
     locData=[]
     for j in range(ensembleSize):
         locData.append([item[0] for item in dfFull[j]])
@@ -310,7 +331,7 @@ def animateLocationViolins(outdirs, plot_num, i, sim_indices, data_indices, loc_
         
     # set up formatting
     ax.set_title(f"{y_label} - Day {i}")
-    ax.set(xlabel='Category', ylabel='# of Observations')
+    ax.set(xlabel='Category', ylabel='\# of Observations')
     ax.yaxis.grid(True, linewidth=0.33)
     ax.set_xticks([y + 1 for y in range(len(sim_indices))])
     ax.set_xticklabels(loc_names)
