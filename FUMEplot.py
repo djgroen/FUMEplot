@@ -77,12 +77,14 @@ def fplot(results_dir, **args):
     #headers, sim_indices, data_indices, loc_names, y_label 
     FUMEheader = ReadHeaders.ReadOutHeaders(outdirs, mode=code)
 
+    print(f"[INFO] FUMEplot plots will be in {outdirs[0]}.", file=sys.stderr)
+
     if "NamedSingleByTimestep" in config:
         if code == "homecoming":
             FUMEmovelogheader = ReadHeaders.ReadMovelogHeaders(outdirs, mode=code)
             for m in config["NamedSingleByTimestep"]["modes"]:
-                PlotNamedSingleByTimestep.plotNamedSingleByTimestep(code, outdirs, m, FUMEmovelogheader, filters=config["NamedSingleByTimestep"]["filters"], disaggregator=config["NamedSingleByTimestep"]["disaggregator"], primary_filter_column=config["NamedSingleByTimestep"]["primary_filter_column"], primary_filter_value=config["NamedSingleByTimestep"]["primary_filter_value"])
+                PlotNamedSingleByTimestep.plotNamedSingleByTimestep(code, outdirs, m, FUMEmovelogheader, filters=config["NamedSingleByTimestep"]["filters"], disaggregator=config["NamedSingleByTimestep"]["disaggregator"], primary_filter_column=config["NamedSingleByTimestep"]["primary_filter_column"], primary_filter_value=config["NamedSingleByTimestep"]["primary_filter_value"], plot_path=outdirs[0])
     
     if "NamedStocksByTimestep" in config:
         for m in config["NamedStocksByTimestep"]["modes"]:
-            PlotNamedStocksByTimestep.plotNamedStocksByTimestep(code, outdirs, m, FUMEheader)
+            PlotNamedStocksByTimestep.plotNamedStocksByTimestep(code, outdirs, m, FUMEheader, plot_path=outdirs[0])
