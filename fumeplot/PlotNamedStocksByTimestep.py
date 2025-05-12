@@ -361,10 +361,74 @@ def plotNamedStocksByTimestep(code, outdirs, plot_type, FUMEheader, plot_path='.
     plotfolder=plot_path+'/EnsemblePlots/'+code+'Plots'
     Path(plotfolder).mkdir(parents=True, exist_ok=True)
    
-    fi = 0 #fig number
+    #fi = 0 #fig number #OG LINE
+    
+    # ----- SPECIAL CASE: default run  # ----------------------------------
+    if plot_type == 'default':
+        # default modes:
+        sub_modes = ['loc_lines','loc_stdev','loc_hist_gif']
+        # which location names we want by default:
+        defaults  = {'ukr-kyivska','ukr-lvivska', 'ukr-dnipropetrovska','poland','romania','germany'}
+        # find their indices
+        idxs = [i for i,name in enumerate(loc_names) if name in defaults]
+        
+        '''
+        # bundle into one PDF if requested
+        pdf_ctx = (PdfPages(plotfolder/"combined_time_plots.pdf")
+                   if combine_plots_pdf else nullcontext())
+        with pdf_ctx as pdf_pages:
+            fi = 0
+            for mode in sub_modes:
+                for i in idxs:
+                    sim_i  = sim_indices[i]
+                    data_i = data_indices[i]
+                    name = loc_names[i]
+                    
+                    if mode == 'loc_lines':
+                        plotLocation(outdirs, fi, i, sim_i, data_i, loc_names, y_label,
+                                     save_fig=True, plot_folder=str(plotfolder),
+                                     combine_plots_pdf=pdf_pages)
+                    elif mode == 'loc_stdev':
+                        plotLocationSTDBound(outdirs, fi, i, sim_i, data_i, loc_names, y_label, save_fig=True, plot_folder=str(plotfolder), combine_plots_pdf=pdf_pages)
+                    elif mode == 'loc_hist_gif':
+                        animateLocationHistogram(outdirs, fi, i, sim_i, data_i, loc_names, y_label, save_fig=True, plot_folder=str(plotfolder), combine_plots_pdf=pdf_pages)
+                    fi += 1
+            if not combine_plots_pdf:
+                plt.show()
+        '''
+        # if no exact match, fall back to everything
+        if not idxs:
+            idxs = list(range(len(loc_names)))
+
+        # bundle into one PDF if requested
+        pdf_ctx = (PdfPages(plotfolder+"/combined_time_plots.pdf")
+                   if combine_plots_pdf else nullcontext())
+        with pdf_ctx as pdf_pages:
+            fi = 0
+            for mode in sub_modes:
+                for i in idxs:
+                    sim_i  = sim_indices[i]
+                    data_i = data_indices[i]
+
+                    if mode == 'loc_lines':
+                        plotLocation(outdirs, fi, i, sim_i, data_i, loc_names, y_label,
+                                     save_fig=True, plot_folder=str(plotfolder),
+                                     combine_plots_pdf=pdf_pages)
+                    elif mode == 'loc_stdev':
+                        plotLocationSTDBound(outdirs, fi, i, sim_i, data_i, loc_names, y_label, save_fig=True, plot_folder=str(plotfolder), combine_plots_pdf=pdf_pages)
+                    else:  # loc_hist_gif
+                        animateLocationHistogram(outdirs, fi, i, sim_i, data_i, loc_names, y_label, save_fig=True, plot_folder=str(plotfolder), combine_plots_pdf=pdf_pages)
+                    fi += 1
+
+            # if running interactively, pop up the figures
+            if not combine_plots_pdf:
+                plt.show()
+
+        return
+        # ---------------------------------------------------------------
 
     with PdfPages(os.path.join(plotfolder, "combined_time_plots.pdf")) if combine_plots_pdf else nullcontext() as pdf_pages:
-
+        fi = 0 #NOT OG
         for i in range(len(sim_indices)):
             if plot_type == "loc_lines" or plot_type == "all":
                 plotLocation(outdirs, fi, i, sim_indices[i], data_indices[i], loc_names, y_label, save_fig=saving, plot_folder=plotfolder, combine_plots_pdf=pdf_pages)

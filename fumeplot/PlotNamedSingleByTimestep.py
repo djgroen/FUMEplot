@@ -398,9 +398,35 @@ def plotStackedBar(outdirs, disaggregator='age_binned', filters=None, save_fig=T
 
     # 4. Compute the mean across runs
     mean_matrix = arr.mean(axis=0)
-    mean_df     = pd.DataFrame(mean_matrix,
-                               index=all_destinations,
-                               columns=all_categories)
+    mean_df = pd.DataFrame(mean_matrix, index=all_destinations, columns=all_categories)
+    
+    #NORMALISE
+    mean_df.index = (
+        mean_df.index.astype(str).str.strip().str.lower().str.replace("_", "-"))
+    
+    # keep only the 25 known Ukrainian oblasts
+    ukr_oblasts = [
+        "kyivska", "zakarpatska", "ivano-frankivska", "ternopilska",
+        "rivnenska", "volynska", "zhytomyrska", "khmelnytska",
+        "vinnytska", "chernivetska", "kyiv", "chernihivska",
+        "sumska", "cherkaska", "poltavska", "kharkivska",
+        "dnipropetrovska", "kirovohradska", "odeska",
+        "mykolaiivska", "khersonska", "donetska", "zaporizka",
+        "luhanska", "autonomous-republic-of-crimea"
+    ]
+
+
+    mask = mean_df.index.isin(ukr_oblasts)
+    # debug print so you can see what you actually have:
+    print("[DEBUG] all destinations:", list(mean_df.index))
+    print(f"[DEBUG] keeping {mask.sum()} oblasts:", list(mean_df.index[mask]))
+
+    mean_df = mean_df.loc[mask]
+
+    #if nothing left, bail out cleanly
+    if mean_df.empty:
+        print("[INFO] No Ukrainian-oblast destinations to plot after filtering — skipping.")
+        return
 
     # 5. Static PNG via Matplotlib
     plt.figure(figsize=(12, 7))
@@ -437,14 +463,14 @@ def plotStackedBar(outdirs, disaggregator='age_binned', filters=None, save_fig=T
         labels={"mean_count": "Mean No. of Individuals",
                 "destination": "Destination"}
     )
-    fig.update_layout(xaxis_tickangle=-45)
+    fig.update_layout(xaxis_tickangle=-45, yaxis=dict(tickmode='linear', tick0=0, dtick=50))
 
     html_out = os.path.join(plot_folder, f"stacked_bar_{disaggregator}.html")
     fig.write_html(html_out)
     print(f"[INFO] Saved HTML to {html_out}")
 
 
-def plotLineOverTime(outdirs, primary_filter_column='source', primary_filter_value=None, line_disaggregator='gender', filters=None, save_fig=True, plot_folder="plots", show_quartiles=False):
+def plotLineOverTime(outdirs, primary_filter_column='source', primary_filter_value=None, line_disaggregator='gender', filters=None, save_fig=True, plot_folder="plots", show_quartiles=True):
     """
     Fan plot of total migrations over time (median ± IQR across ensemble runs).
     """
@@ -618,13 +644,33 @@ def plotNamedSingleByTimestep(code, outdirs, plot_type, FUMEheader, filters=[], 
        
     filters = getattr(FUMEheader, 'filters', [])
     
-    #ensembleSize = 8
-    
     saving=True
     plotfolder=plot_path+'/EnsemblePlots/'+code+'Plots'
     Path(plotfolder).mkdir(parents=True, exist_ok=True)
     
     fi=0
+    
+     # ----- SPECIAL CASE: default run outputs 3 plots in one go -----
+    if plot_type == "default":
+        # 1) Sankey
+        plotMigrationSankey(outdirs,
+                            save_fig=saving,
+                            plot_folder=plotfolder)
+        # 2) Stacked bar by gender
+        plotStackedBar(outdirs=outdirs,
+                        disaggregator="gender",
+                        filters=filters,
+                        save_fig=saving,
+                        plot_folder=plotfolder)
+        # 3) Stacked bar by age‐bins
+        plotStackedBar(outdirs=outdirs,
+                        disaggregator="age",
+                        filters=filters,
+                        save_fig=saving,
+                        plot_folder=plotfolder)
+        return
+    # ---------------------------------------------------------------
+    
     if plot_type == "source_hist" or plot_type == "all":
         plotSourceHist(outdirs, filters=[], save_fig=saving, plot_folder=plotfolder, combine_plots_pdf=True)
     
