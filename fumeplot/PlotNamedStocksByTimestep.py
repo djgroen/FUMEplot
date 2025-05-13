@@ -62,8 +62,8 @@ def plotLocation(outdirs, plot_num, loc_index, sim_index, data_index, loc_names,
     ax.legend(handles=handles, labels=labels, loc='best')
     
     # set up formatting
-    ax.set_xlabel('Day')
-    ax.set_ylabel(y_label)
+    ax.set_xlabel('Month')
+    ax.set_ylabel('Number of Returnees')
     ax.set_title(str(loc_names[loc_index]))
 
     ax.grid(visible=True, which='both', axis='both', linestyle='-', linewidth=0.33)
@@ -372,30 +372,6 @@ def plotNamedStocksByTimestep(code, outdirs, plot_type, FUMEheader, plot_path='.
         # find their indices
         idxs = [i for i,name in enumerate(loc_names) if name in defaults]
         
-        '''
-        # bundle into one PDF if requested
-        pdf_ctx = (PdfPages(plotfolder/"combined_time_plots.pdf")
-                   if combine_plots_pdf else nullcontext())
-        with pdf_ctx as pdf_pages:
-            fi = 0
-            for mode in sub_modes:
-                for i in idxs:
-                    sim_i  = sim_indices[i]
-                    data_i = data_indices[i]
-                    name = loc_names[i]
-                    
-                    if mode == 'loc_lines':
-                        plotLocation(outdirs, fi, i, sim_i, data_i, loc_names, y_label,
-                                     save_fig=True, plot_folder=str(plotfolder),
-                                     combine_plots_pdf=pdf_pages)
-                    elif mode == 'loc_stdev':
-                        plotLocationSTDBound(outdirs, fi, i, sim_i, data_i, loc_names, y_label, save_fig=True, plot_folder=str(plotfolder), combine_plots_pdf=pdf_pages)
-                    elif mode == 'loc_hist_gif':
-                        animateLocationHistogram(outdirs, fi, i, sim_i, data_i, loc_names, y_label, save_fig=True, plot_folder=str(plotfolder), combine_plots_pdf=pdf_pages)
-                    fi += 1
-            if not combine_plots_pdf:
-                plt.show()
-        '''
         # if no exact match, fall back to everything
         if not idxs:
             idxs = list(range(len(loc_names)))

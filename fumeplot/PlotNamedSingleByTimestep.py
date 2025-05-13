@@ -433,7 +433,7 @@ def plotStackedBar(outdirs, disaggregator='age_binned', filters=None, save_fig=T
     mean_df.plot(kind='bar', stacked=True, ax=plt.gca())
     plt.title(f"Mean Arrivals by Destination, Stacked by '{disaggregator}'")
     plt.xlabel("Destination (Ukrainian Oblast)")
-    plt.ylabel("Mean No. of Individuals (per run)")
+    plt.ylabel("Mean No. of Returnees (per run)")
     plt.xticks(rotation=45, ha='right')
     plt.tight_layout()
 
@@ -460,11 +460,26 @@ def plotStackedBar(outdirs, disaggregator='age_binned', filters=None, save_fig=T
         color=disaggregator,
         barmode="stack",
         title=f"Mean Arrivals by Destination, Stacked by '{disaggregator}'",
-        labels={"mean_count": "Mean No. of Individuals",
+        labels={"mean_count": "Mean No. of Returnees",
                 "destination": "Destination"}
     )
-    fig.update_layout(xaxis_tickangle=-45, yaxis=dict(tickmode='linear', tick0=0, dtick=50))
-
+    fig.update_layout(xaxis_tickangle=-45, yaxis=dict(tickmode='linear', tick0=0, dtick=50), title_font_size=25, font=dict(size=18), legend=dict(font=dict(size=18)), xaxis_title_font_size=24, yaxis_title_font_size=24, xaxis_tickfont_size=20, yaxis_tickfont_size=20, margin=dict(l=120, r=20, t=80, b=80))
+    
+    # y-axis grid
+    fig.update_yaxes(
+        tickmode="linear",
+        tick0=0,
+        dtick=50,                  # ticks every 50
+        showgrid=True,             # main grid lines
+        gridcolor="LightGray",
+        gridwidth=1,
+        minor=dict(                 # and minor grid lines halfway between the 50’s
+            tick0=0,
+            dtick=25,
+            showgrid=True,
+            gridcolor="LightGray",
+            gridwidth=0.5))
+        
     html_out = os.path.join(plot_folder, f"stacked_bar_{disaggregator}.html")
     fig.write_html(html_out)
     print(f"[INFO] Saved HTML to {html_out}")
@@ -554,11 +569,11 @@ def plotLineOverTime(outdirs, primary_filter_column='source', primary_filter_val
                  linewidth=2,
                  label=f"{cat} median")
 
-    plt.title(f"Migrations Over Time\n"
+    plt.title(f"Returns Over Time\n"
               f"(filtered {primary_filter_column}="
               f"{primary_filter_value or 'All'})")
-    plt.xlabel("Time (days)")
-    plt.ylabel("Number of Migrations")
+    plt.xlabel("Time (months)")
+    plt.ylabel("Number of Returnees")
     plt.legend(ncol=2, fontsize='small')
     plt.tight_layout()
 
@@ -589,10 +604,10 @@ def plotLineOverTime(outdirs, primary_filter_column='source', primary_filter_val
                   x='time',
                   y='median',
                   color=line_disaggregator,
-                  title=("Migrations Over Time<br>"
+                  title=("Returnees Over Time<br>"
                          f"(filtered {primary_filter_column}="
                          f"{primary_filter_value or 'All'})"),
-                  labels={'median':'Median Migrations','time':'Time'})
+                  labels={'median':'Median No. of Returnees','time':'Time (Months)'})
     # add the shading for each category
     if show_quartiles:
         for cat in all_cats:
@@ -609,9 +624,9 @@ def plotLineOverTime(outdirs, primary_filter_column='source', primary_filter_val
                 fillcolor='rgba(0,0,0,0.1)',  # light grey shading
                 name=f"{cat} 75th pct"
             ).data)
+    
+    fig.update_layout(title_font_size=25, font=dict(size=18), legend=dict(font=dict(size=18)), xaxis_title_font_size=24, yaxis_title_font_size=24, xaxis_tickfont_size=20, yaxis_tickfont_size=20, xaxis_type='linear')
 
-    fig.update_layout(legend=dict(itemsizing='constant'),
-                      xaxis_type='linear')
     html = os.path.join(plot_folder,
                         f"fan_{primary_filter_column}_{primary_filter_value}_{line_disaggregator}.html")
     fig.write_html(html)

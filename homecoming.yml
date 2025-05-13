@@ -1,9 +1,9 @@
 NamedStocksByTimestep:
-  modes: ["loc_stdev"]
+  modes: ["None"]
 
 NamedSingleByTimestep:
-  modes: ["line_chart"]
+  modes: ["stacked_bar"]
   filters: ["None"]
-  disaggregator: ["gender"]
+  disaggregator: ["age"]
   primary_filter_column: ["destination"]
   primary_filter_value: 
