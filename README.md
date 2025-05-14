@@ -1,6 +1,14 @@
 # FUMEplot
 Facilitated visualisation of Uncertainty in Model Ensemble outputs using plots.
 
+## Dependencies
+
+Install dependencies by running:
+
+```
+pip install -r requirements.txt
+```
+
 ## local usage
 For testing try (while in "fumeplot" directory):
 
