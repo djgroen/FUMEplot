@@ -7,6 +7,9 @@ import sys
 from pathlib import Path
 import matplotlib.patches as mpatches
 import matplotlib.lines as mlines
+import json
+import plotly.express as px
+import glob 
 
 from matplotlib.backends.backend_pdf import PdfPages
 from contextlib import nullcontext
@@ -300,9 +303,6 @@ def animateLocationViolins(outdirs, plot_num, i, sim_indices, data_indices, loc_
 
         return (hist)
         
-    #fig = plt.figure(plot_num+1)
-    #fig, ax = plt.subplots()
-    # - LatexPlotlib version
     fig, ax = lpl.subplots(num=plot_num+1)
 
     locData=[]
@@ -344,6 +344,89 @@ def animateLocationViolins(outdirs, plot_num, i, sim_indices, data_indices, loc_
        ani.save(filename=plot_folder+'/Overall_Violin.gif', writer="pillow")
 
     plt.close(fig)
+    
+def _load_ukraine_geo(geojson_dir):
+    """Merge all UA_*.geojson files in geojson_dir into one FeatureCollection."""
+    files = glob.glob(os.path.join(geojson_dir, "UA_*.geojson"))
+    if not files:
+        raise FileNotFoundError(f"No UA_*.geojson found in {geojson_dir}")
+    merged = {"type": "FeatureCollection", "features": []}
+    for fn in files:
+        g = json.load(open(fn, "r"))
+        # some files are single‐feature, some multi‐feature
+        feats = g.get("features", [g])  
+        merged["features"].extend(feats)
+    return merged
+
+def plotChoropleth(outdirs, plot_folder="plots", geojson_dir=None):
+    """
+    Reads each out.csv, takes the final time‐step counts for every ukr-<oblast> column,
+    averages across ensemble runs, then draws a Plotly choropleth of mean returnees
+    by Ukrainian oblast.
+    """
+    # 1. gather final‐row data
+    run_counts = []
+    for d in outdirs:
+        csv_path = os.path.join(d, "out.csv")
+        if not os.path.exists(csv_path):
+            print(f"[WARNING] {csv_path} missing – skipping.")
+            continue
+        df = pd.read_csv(csv_path)
+        # select only the ukr‐* columns (assumes first column is 'time')
+        oblast_cols = [c for c in df.columns if c.startswith("ukr-")]
+        last = df.iloc[-1][oblast_cols]
+        run_counts.append(last.values.astype(float))
+    if not run_counts:
+        print("[INFO] No runs found for choropleth → skipping.")
+        return
+
+    # stack into array (runs × oblasts) and compute mean
+    arr = np.vstack(run_counts)
+    mean_vals = arr.mean(axis=0)
+
+    # 2. build summary DataFrame
+    oblast_cols = oblast_cols  # same order for every run
+    # strip "ukr-", replace hyphens with spaces, title‐case to match NAME_1
+    dests = [c.replace("ukr-", "").replace("-", " ").title() for c in oblast_cols]
+    df_summary = pd.DataFrame({
+        "destination": dests,
+        "mean_count": mean_vals
+    })
+
+    # 3. load GeoJSON
+    if geojson_dir is None:
+        # assume located alongside this script
+        here = Path(__file__).parent
+        geojson_dir = here / "ukraine_geojson"
+    ukraine_geo = _load_ukraine_geo(str(geojson_dir))
+
+    # 4. make the choropleth
+    fig = px.choropleth(
+        df_summary,
+        geojson=ukraine_geo,
+        locations="destination",
+        featureidkey="properties.NAME_1",
+        color="mean_count",
+        color_continuous_scale="Viridis",
+        title="Mean Returnees by Ukrainian Oblast (final time‐step)",
+        labels={"mean_count": "Mean # Returnees"}
+    )
+    # zoom to Ukraine, hide frame
+    fig.update_geos(fitbounds="locations", visible=False)
+
+    # styling
+    fig.update_layout(
+        title_font_size=24,
+        font=dict(size=16),
+        margin={"l":0,"r":0,"t":50,"b":0}
+    )
+
+    # 5. save
+    os.makedirs(plot_folder, exist_ok=True)
+    out_html = os.path.join(plot_folder, "choropleth_returnees.html")
+    fig.write_html(out_html)
+    print(f"[INFO] Saved choropleth to {out_html}")
+
 
 #main plotting script
 def plotNamedStocksByTimestep(code, outdirs, plot_type, FUMEheader, plot_path='../..'):
@@ -422,8 +505,11 @@ def plotNamedStocksByTimestep(code, outdirs, plot_type, FUMEheader, plot_path='.
                animateLocationHistogram(outdirs, fi, i, sim_indices[i], data_indices[i], loc_names, y_label, save_fig=saving, plot_folder=plotfolder, combine_plots_pdf=pdf_pages)
                fi += 1
 
-        if plot_type == "loc_violin_gif" or plot_type == "all":
-            animateLocationViolins(outdirs, fi, i, sim_indices, data_indices, loc_names, y_label, save_fig=saving, plot_folder=plotfolder, combine_plots_pdf=pdf_pages)
+            if plot_type == "loc_violin_gif" or plot_type == "all":
+                animateLocationViolins(outdirs, fi, i, sim_indices, data_indices, loc_names, y_label, save_fig=saving, plot_folder=plotfolder, combine_plots_pdf=pdf_pages)
+                
+            if plot_type == "choropleth" or plot_type == "all":
+                plotChoropleth(outdirs, plot_folder=plotfolder, geojson_dir=os.path.join(os.path.dirname(__file__), "ukraine_geojson"))
 
     if not combine_plots_pdf:
         plt.show()

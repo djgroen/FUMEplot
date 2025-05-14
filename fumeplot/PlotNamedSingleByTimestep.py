@@ -11,8 +11,6 @@ import matplotlib.lines as mlines
 import plotly.graph_objects as go
 import plotly.express as px
 
-
-
 from matplotlib.backends.backend_pdf import PdfPages
 from contextlib import nullcontext
 
@@ -509,6 +507,11 @@ def plotLineOverTime(outdirs, primary_filter_column='source', primary_filter_val
         # optional primary filter (e.g. source="germany")
         if primary_filter_value is not None:
             df = df[df[primary_filter_column] == primary_filter_value]
+            
+            # if user asked to disaggregate by "education" but there's no such column, skip this run entirely
+        if line_disaggregator == "education" and "education" not in df.columns:
+            print(f"[WARNING] No 'education' column in {d}/migration.log – skipping run for education plot.")
+            continue
 
         # optional extra filters
         for col, op, val in filters:

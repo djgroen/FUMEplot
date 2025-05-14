@@ -4,6 +4,6 @@ NamedStocksByTimestep:
 NamedSingleByTimestep:
   modes: ["stacked_bar"]
   filters: ["None"]
-  disaggregator: ["age"]
+  disaggregator: ["property_in_ukraine"]
   primary_filter_column: ["destination"]
   primary_filter_value: 
