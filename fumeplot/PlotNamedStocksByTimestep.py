@@ -14,12 +14,15 @@ import glob
 from matplotlib.backends.backend_pdf import PdfPages
 from contextlib import nullcontext
 
-import latexplotlib as lpl
-lpl.style.use('latex12pt')
-latex_doc_size = (347.12354, 549.138)
-columns_per_page = 2.
-latex_doc_size = tuple(x / columns_per_page for x in latex_doc_size)
-lpl.size.set(*latex_doc_size)
+USELATEXPLOTLIB = False
+
+if USELATEXPLOTLIB:
+    import latexplotlib as lpl
+    lpl.style.use('latex12pt')
+    latex_doc_size = (347.12354, 549.138)
+    columns_per_page = 2.
+    latex_doc_size = tuple(x / columns_per_page for x in latex_doc_size)
+    lpl.size.set(*latex_doc_size)
 
 
 def _formatLabels(labels):
@@ -40,10 +43,12 @@ def plotLocation(outdirs, plot_num, loc_index, sim_index, data_index, loc_names,
         ensembleSize += 1
     
     # plot all waveforms
-    # fig = plt.figure(plot_num+1)
-    # ax = fig.add_subplot(111)
     # - LatexPlotlib version
-    fig, ax = lpl.subplots(num=plot_num+1)
+    if USELATEXPLOTLIB:
+        fig, ax = lpl.subplots(num=plot_num+1)
+    else:
+        fig = plt.figure(plot_num+1)
+        ax = fig.add_subplot(111)
     
     # plot individual ensemble members
     for i in range(ensembleSize):
@@ -91,13 +96,12 @@ def plotLocationSTDBound(outdirs, plot_num, loc_index, sim_index, data_index, lo
         ensembleSize += 1
     
     # plot all waveforms
-    # fig = plt.figure(plot_num+1)
-    # ax = fig.add_subplot(111)
     # - LatexPlotlib version
-    fig, ax = lpl.subplots(num=plot_num+1)
-    
-    # plot simulation ensemble mean
-    ax.plot(np.mean(dfTest,axis=0),'maroon',label='Ensemble Mean')
+    if USELATEXPLOTLIB:
+        fig, ax = lpl.subplots(num=plot_num+1)
+    else:
+        fig = plt.figure(plot_num+1)
+        ax = fig.add_subplot(111)
 
     # plot simulation ensemble mean +/- 1 standard deviation
     ax.fill_between(np.linspace(0,len(dfTest[0]),len(dfTest[0])), 
@@ -149,10 +153,12 @@ def plotLocationDifferences(outdirs, plot_num, loc_index, sim_index, data_index,
              f'ARD = {ard:.2f}')
     
     # plot all waveforms
-    # fig = plt.figure(plot_num+1)
-    # ax = fig.add_subplot(111)
     # - LatexPlotlib version
-    fig, ax = lpl.subplots(num=plot_num+1)
+    if USELATEXPLOTLIB:
+        fig, ax = lpl.subplots(num=plot_num+1)
+    else:
+        fig = plt.figure(plot_num+1)
+        ax = fig.add_subplot(111)
     
     ax.plot(np.mean(dfTest,axis=0) - df.iloc[:, data_index],'black')
         
@@ -210,10 +216,12 @@ def animateLocationHistogram(outdirs, plot_num, loc_index, sim_index, data_index
         else:
             return (hist)
         
-    #fig = plt.figure(plot_num+1)
-    #fig, ax = plt.subplots()
     # - LatexPlotlib version
-    fig, ax = lpl.subplots(num=plot_num+1)
+    if USELATEXPLOTLIB:
+        fig, ax = lpl.subplots(num=plot_num+1)
+    else:   
+        fig = plt.figure(plot_num+1)
+        ax = fig.add_subplot(111)
 
     ax.hist([item[0] for item in dfTest], bins=10, color='c', edgecolor='k', alpha=0.65, label='Ensemble Data')
 
@@ -302,8 +310,14 @@ def animateLocationViolins(outdirs, plot_num, i, sim_indices, data_indices, loc_
         plt.tight_layout()
 
         return (hist)
-        
-    fig, ax = lpl.subplots(num=plot_num+1)
+    
+    if USELATEXPLOTLIB:
+        # - LatexPlotlib version
+        fig, ax = lpl.subplots(num=plot_num+1)
+    else:
+        # - Matplotlib version
+        fig = plt.figure(plot_num+1)
+        ax = fig.add_subplot(111)
 
     locData=[]
     for j in range(ensembleSize):
