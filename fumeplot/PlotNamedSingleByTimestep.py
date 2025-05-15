@@ -59,8 +59,24 @@ PROP_LABELS = {
     5: "Intact"
 }
 
+# give every disaggregator a nice display name
+DISAGG_LABELS = {
+    'age':                'Age',
+    'age_binned':         'Age',
+    'gender':             'Gender',
+    'education':          'Education',
+    'property_in_ukraine':'Property In Ukraine'
+}
 
+# sequential palette for Age
+AGE_PALETTE = px.colors.sequential.Plasma  # or Viridis, Turbo, etc.
 
+# intuitive gender colors
+GENDER_MAP = {"m": "#1f77b4",   # blue
+              "f": "#e377c2"}   # pink
+def pretty(name: str) -> str:
+    """Turn a raw aggregator key into its user-friendly label."""
+    return DISAGG_LABELS.get(name, name.replace('_',' ').title())
 
 def _formatLabels(labels):
 
@@ -456,9 +472,10 @@ def plotStackedBar(outdirs, disaggregator='age_binned', filters=None, save_fig=T
     # 5. Static PNG via Matplotlib
     plt.figure(figsize=(12, 7))
     plot_df.plot(kind='bar', stacked=True, ax=plt.gca())
-    plt.title(f"Mean Arrivals by Destination, Stacked by '{disaggregator}'")
+    pretty_name = pretty(disaggregator)
+    plt.title(f"Mean Arrivals by Destination, Stacked by {pretty_name}")
     plt.xlabel("Destination (Ukrainian Oblast)")
-    plt.ylabel("Mean No. of Returnees (per run)")
+    plt.ylabel(f"Mean No. of Returnees (per run) — {pretty_name}")
     plt.xticks(rotation=45, ha='right')
     plt.tight_layout()
 
@@ -484,11 +501,11 @@ def plotStackedBar(outdirs, disaggregator='age_binned', filters=None, save_fig=T
         y="mean_count",
         color=disaggregator,
         barmode="stack",
-        title=f"Mean Arrivals by Destination, Stacked by '{disaggregator}'",
-        labels={"mean_count": "Mean No. of Returnees",
-                "destination": "Destination"}
+        title=f"Mean Arrivals by Destination, Stacked by {pretty_name}",
+        labels={"mean_count": "Mean No. of Returnees (x1000)",
+                "destination": "Destination", disaggregator: pretty_name}
     )
-    fig.update_layout(xaxis_tickangle=-45, yaxis=dict(tickmode='linear', tick0=0, dtick=50), title_font_size=25, font=dict(size=18), legend=dict(font=dict(size=18)), xaxis_title_font_size=24, yaxis_title_font_size=24, xaxis_tickfont_size=20, yaxis_tickfont_size=20, margin=dict(l=120, r=20, t=80, b=80))
+    fig.update_layout(xaxis_tickangle=-45, yaxis=dict(tickmode='linear', tick0=0, dtick=50), title_font_size=25, font=dict(size=18), legend=dict(font=dict(size=18)), legend_title_text=pretty(disaggregator), xaxis_title_font_size=24, yaxis_title_font_size=24, xaxis_tickfont_size=20, yaxis_tickfont_size=20, margin=dict(l=120, r=20, t=80, b=80))
     
     # y-axis grid
     fig.update_yaxes(
@@ -611,8 +628,9 @@ def plotLineOverTime(outdirs, primary_filter_column='source', primary_filter_val
     plt.title(f"Returns Over Time\n"
               f"(filtered {primary_filter_column}="
               f"{primary_filter_value or 'All'})")
+    pretty_name = pretty(line_disaggregator)
     plt.xlabel("Time (months)")
-    plt.ylabel("Number of Returnees")
+    plt.ylabel("Number of Returnees (x1000)")
     plt.legend(ncol=2, fontsize='small')
     plt.tight_layout()
 
@@ -622,7 +640,7 @@ def plotLineOverTime(outdirs, primary_filter_column='source', primary_filter_val
     if save_fig:
         plt.savefig(png, dpi=150)
         print(f"[INFO] saved PNG {png}")
-    plt.show()
+    #plt.show()
     plt.close()
 
     # Interactive Plotly fan plot
@@ -643,10 +661,10 @@ def plotLineOverTime(outdirs, primary_filter_column='source', primary_filter_val
                   x='time',
                   y='median',
                   color=line_disaggregator,
-                  title=("Returnees Over Time<br>"
+                  title=(f"Returnees Over Time<br>"
                          f"(filtered {primary_filter_column}="
                          f"{primary_filter_value or 'All'})"),
-                  labels={'median':'Median No. of Returnees','time':'Time (Months)'})
+                  labels={'median':'Median No. of Returnees (x1000)','time':'Time (Months)'})
     # add the shading for each category
     if show_quartiles:
         for disp in dfp[line_disaggregator].unique():
@@ -668,7 +686,7 @@ def plotLineOverTime(outdirs, primary_filter_column='source', primary_filter_val
     for trace in fig.data:
         trace.update(mode="lines")
     
-    fig.update_layout(title_font_size=25, font=dict(size=18), legend=dict(font=dict(size=18)), xaxis_title_font_size=24, yaxis_title_font_size=24, xaxis_tickfont_size=20, yaxis_tickfont_size=20, xaxis_type='linear')
+    fig.update_layout(title_font_size=25, font=dict(size=18), legend=dict(font=dict(size=18)), legend_title_text=pretty(line_disaggregator), xaxis_title_font_size=24, yaxis_title_font_size=24, xaxis_tickfont_size=20, yaxis_tickfont_size=20, xaxis_type='linear')
 
     html = os.path.join(plot_folder,
                         f"fan_{primary_filter_column}_{primary_filter_value}_{line_disaggregator}.html")
@@ -711,9 +729,11 @@ def plotNamedSingleByTimestep(code, outdirs, plot_type, FUMEheader, filters=[], 
      # ----- SPECIAL CASE: default run outputs 3 plots in one go -----
     if plot_type == "default":
         # 1) Sankey
+        '''
         plotMigrationSankey(outdirs,
                             save_fig=saving,
                             plot_folder=plotfolder)
+        '''
         # 2) Stacked bar by gender
         plotStackedBar(outdirs=outdirs,
                         disaggregator="gender",
@@ -726,6 +746,30 @@ def plotNamedSingleByTimestep(code, outdirs, plot_type, FUMEheader, filters=[], 
                         filters=filters,
                         save_fig=saving,
                         plot_folder=plotfolder)
+                        
+        plotStackedBar(outdirs=outdirs,
+                        disaggregator="education",
+                        filters=filters,
+                        save_fig=saving,
+                        plot_folder=plotfolder)
+                        
+        plotStackedBar(outdirs=outdirs,
+                        disaggregator="property_in_ukraine",
+                        filters=filters,
+                        save_fig=saving,
+                        plot_folder=plotfolder)
+                        
+        plotLineOverTime(outdirs=outdirs, primary_filter_column=primary_filter_column, primary_filter_value=primary_filter_value, line_disaggregator="age_binned", filters=filters, save_fig=saving, plot_folder=plotfolder
+        )
+        
+        plotLineOverTime(outdirs=outdirs, primary_filter_column=primary_filter_column, primary_filter_value=primary_filter_value, line_disaggregator="property_in_ukraine", filters=filters, save_fig=saving, plot_folder=plotfolder
+        )
+        
+        plotLineOverTime(outdirs=outdirs, primary_filter_column=primary_filter_column, primary_filter_value=primary_filter_value, line_disaggregator="education", filters=filters, save_fig=saving, plot_folder=plotfolder
+        )
+        
+        plotLineOverTime(outdirs=outdirs, primary_filter_column=primary_filter_column, primary_filter_value=primary_filter_value, line_disaggregator="gender", filters=filters, save_fig=saving, plot_folder=plotfolder
+        )
         return
     # ---------------------------------------------------------------
     
