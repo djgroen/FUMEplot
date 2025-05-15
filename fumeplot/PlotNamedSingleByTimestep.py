@@ -41,6 +41,26 @@ columns_per_page = 1.
 latex_doc_size = tuple(x / columns_per_page for x in latex_doc_size)
 lpl.size.set(*latex_doc_size)
 
+EDU_LABELS = {
+    0: "No Education",
+    1: "Primary",
+    2: "Secondary",
+    4: "Vocational",
+    3: "Bachelor",      # adjust if your code→label mapping differs
+    5: "Specialist",
+    6: "Master Plus"
+}
+
+PROP_LABELS = {
+    0: "No Property",
+    1: "Unknown Status",
+    2: "Fully Damaged",
+    3: "Partially Damaged",
+    5: "Intact"
+}
+
+
+
 
 def _formatLabels(labels):
 
@@ -425,10 +445,17 @@ def plotStackedBar(outdirs, disaggregator='age_binned', filters=None, save_fig=T
     if mean_df.empty:
         print("[INFO] No Ukrainian-oblast destinations to plot after filtering — skipping.")
         return
+        
+    plot_df = mean_df.copy()
+    if disaggregator == "education":
+        plot_df.rename(columns=EDU_LABELS, inplace=True)
+        
+    elif disaggregator == "property_in_ukraine":
+        plot_df.rename(columns=PROP_LABELS, inplace=True)
 
     # 5. Static PNG via Matplotlib
     plt.figure(figsize=(12, 7))
-    mean_df.plot(kind='bar', stacked=True, ax=plt.gca())
+    plot_df.plot(kind='bar', stacked=True, ax=plt.gca())
     plt.title(f"Mean Arrivals by Destination, Stacked by '{disaggregator}'")
     plt.xlabel("Destination (Ukrainian Oblast)")
     plt.ylabel("Mean No. of Returnees (per run)")
@@ -444,8 +471,8 @@ def plotStackedBar(outdirs, disaggregator='age_binned', filters=None, save_fig=T
     plt.close()
 
     # 6. Interactive HTML via Plotly
-    mean_df.index.name = "destination"
-    df_long = mean_df.reset_index().melt(
+    plot_df.index.name = "destination"
+    df_long = plot_df.reset_index().melt(
         id_vars="destination",
         var_name=disaggregator,
         value_name="mean_count"
@@ -554,23 +581,32 @@ def plotLineOverTime(outdirs, primary_filter_column='source', primary_filter_val
     med = np.median(arr, axis=0)
     q25 = np.percentile(arr, 25, axis=0)
     q75 = np.percentile(arr, 75, axis=0)
+    
+    # prepare display‐names if education or property
+    if line_disaggregator == "education":
+        name_map = EDU_LABELS
+    elif line_disaggregator == "property_in_ukraine":
+        name_map = PROP_LABELS
+    else:
+        name_map = {}
 
     # Static Matplotlib fan plot
     plt.figure(figsize=(12,6))
     for j, cat in enumerate(all_cats):
+        disp = name_map.get(cat, cat)
         # shade between q25 and q75 for this category
         if show_quartiles:
             plt.fill_between(all_times,
                              q25[:,j],
                              q75[:,j],
                              alpha=0.2,
-                             label=f"{cat} IQR")
+                             label=f"{disp} IQR")
         # median line
         plt.plot(all_times,
                  med[:,j],
                  marker='o',
                  linewidth=2,
-                 label=f"{cat} median")
+                 label=f"{disp} median")
 
     plt.title(f"Returns Over Time\n"
               f"(filtered {primary_filter_column}="
@@ -596,7 +632,7 @@ def plotLineOverTime(outdirs, primary_filter_column='source', primary_filter_val
         for j, cat in enumerate(all_cats):
             rows.append({
                 'time': t,
-                line_disaggregator: cat,
+                line_disaggregator: name_map.get(cat, cat),
                 'median': med[ti,j],
                 'q25':    q25[ti,j],
                 'q75':    q75[ti,j]
@@ -613,20 +649,24 @@ def plotLineOverTime(outdirs, primary_filter_column='source', primary_filter_val
                   labels={'median':'Median No. of Returnees','time':'Time (Months)'})
     # add the shading for each category
     if show_quartiles:
-        for cat in all_cats:
-            dsub = dfp[dfp[line_disaggregator]==cat]
+        for disp in dfp[line_disaggregator].unique():
+            dsub = dfp[dfp[line_disaggregator]==disp]
             fig.add_traces(px.scatter(dsub, x='time', y='q25').update_traces(
                 line=dict(width=0),
                 fill='tonexty',
                 fillcolor='rgba(0,0,0,0)',  # invisible, but needed to anchor
-                name=f"{cat} 25th pct"
+                name=f"{disp} 25th pct"
             ).data)
             fig.add_traces(px.scatter(dsub, x='time', y='q75').update_traces(
                 line=dict(width=0),
                 fill='tonexty',
                 fillcolor='rgba(0,0,0,0.1)',  # light grey shading
-                name=f"{cat} 75th pct"
+                name=f"{disp} 75th pct"
             ).data)
+    
+    # remove/gray‐out all of the point markers on the median traces
+    for trace in fig.data:
+        trace.update(mode="lines")
     
     fig.update_layout(title_font_size=25, font=dict(size=18), legend=dict(font=dict(size=18)), xaxis_title_font_size=24, yaxis_title_font_size=24, xaxis_tickfont_size=20, yaxis_tickfont_size=20, xaxis_type='linear')
 

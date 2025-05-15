@@ -1,9 +1,9 @@
 NamedStocksByTimestep:
-  modes: ["None"]
+  modes: ["all"]
 
 NamedSingleByTimestep:
-  modes: ["stacked_bar"]
+  modes: ["None"]
   filters: ["None"]
-  disaggregator: ["property_in_ukraine"]
+  disaggregator: ["education"]
   primary_filter_column: ["destination"]
   primary_filter_value: 
