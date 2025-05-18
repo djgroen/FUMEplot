@@ -441,6 +441,68 @@ def plotChoropleth(outdirs, plot_folder="plots", geojson_dir=None):
     fig.write_html(out_html)
     print(f"[INFO] Saved choropleth to {out_html}")
 
+def plotFinalOblastBarHTML(outdirs, plot_folder="plots"):
+    """
+    Reads the final row of out.csv for each ensemble in `outdirs`,
+    selects only the ukr-<oblast> columns, computes the mean across runs,
+    and writes an interactive HTML bar chart of mean returnees by oblast.
+    """
+    # 1. collect the last‐row values for each run
+    run_vals = []
+    oblast_cols = None
+    for d in outdirs:
+        csv_path = os.path.join(d, "out.csv")
+        if not os.path.exists(csv_path):
+            print(f"[WARNING] {csv_path} missing; skipping.")
+            continue
+        df = pd.read_csv(csv_path)
+        # on first run capture which columns to use
+        if oblast_cols is None:
+            oblast_cols = [c for c in df.columns if c.startswith("ukr-")]
+        # grab last row
+        run_vals.append(df.iloc[-1][oblast_cols].astype(float).values)
+
+    if not run_vals:
+        print("[INFO] No data for final‐bar → skipping.")
+        return
+
+    # 2. compute mean across runs
+    arr = np.vstack(run_vals)        # shape: (n_runs, n_oblasts)
+    mean_counts = arr.mean(axis=0)   # length = n_oblasts
+
+    # 3. build dataframe for Plotly
+    # clean up the names: drop "ukr-", hyphens→spaces, title case
+    names = [c.replace("ukr-", "").replace("-", " ").title()
+             for c in oblast_cols]
+    df_plot = pd.DataFrame({
+        "Oblast": names,
+        "Mean Returnees": mean_counts
+    })
+
+    # 4. make the bar chart
+    fig = px.bar(
+        df_plot,
+        x="Oblast",
+        y="Mean Returnees",
+        title="Mean Returnees by Ukrainian Oblast (final timestep)",
+        labels={"Mean Returnees": "Net No. of Returnees (x1000)","Oblast": "Oblast Regions"},
+    )
+    fig.update_layout(
+        xaxis_tickangle=-45,
+        margin=dict(l=40, r=20, t=50, b=120),
+        title_font_size=25,
+        font=dict(size=18),
+        xaxis_title_font_size=24,
+        yaxis_title_font_size=24,
+        xaxis_tickfont_size=20,
+        yaxis_tickfont_size=20,
+    )
+
+    # 5. write out the HTML
+    os.makedirs(plot_folder, exist_ok=True)
+    out_html = os.path.join(plot_folder, "final_oblast_bar.html")
+    fig.write_html(out_html)
+    print(f"[INFO] Saved final‐bar HTML to {out_html}")
 
 #main plotting script
 def plotNamedStocksByTimestep(code, outdirs, plot_type, FUMEheader, plot_path='../..'):
@@ -524,6 +586,9 @@ def plotNamedStocksByTimestep(code, outdirs, plot_type, FUMEheader, plot_path='.
                 
             if plot_type == "choropleth" or plot_type == "all":
                 plotChoropleth(outdirs, plot_folder=plotfolder, geojson_dir=os.path.join(os.path.dirname(__file__), "ukraine_geojson"))
+            
+            if plot_type in ("bar_chart", "all"):
+                plotFinalOblastBarHTML(outdirs, plot_folder=plotfolder)
 
     if not combine_plots_pdf:
         plt.show()
