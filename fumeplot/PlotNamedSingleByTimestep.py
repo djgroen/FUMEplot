@@ -692,37 +692,6 @@ def plotLineOverTime(outdirs, primary_filter_column='source', primary_filter_val
         labels={'median':'Median No. of Returnees (×1000)','time':'Time (Months)'}
     )
 
-    '''
-    # Interactive Plotly fan plot
-    # melt into long form: columns = time, category, median, q25, q75
-    rows = []
-    for ti, t in enumerate(all_times):
-        for j, cat in enumerate(all_cats):
-            rows.append({
-                'time': t,
-                line_disaggregator: name_map.get(cat, cat),
-                'median': med[ti,j],
-                'q25':    q25[ti,j],
-                'q75':    q75[ti,j]
-            })
-    dfp = pd.DataFrame(rows)
-    
-    color_map = palette if line_disaggregator=="gender" else None
-
-    fig = px.line(dfp,
-                  x='time',
-                  y='median',
-                  color=line_disaggregator,
-                  color_discrete_map={
-                    'f': GENDER_COLORS['f'],
-                    'm': GENDER_COLORS['m']
-                    } if line_disaggregator=='gender' else None,
-                  title=(f"Returnees Over Time<br>"
-                         f"(filtered {primary_filter_column}="
-                         f"{primary_filter_value or 'All'})"),
-                  labels={'median':'Median No. of Returnees (x1000)','time':'Time (Months)'})
-                  
-    '''
     # add the shading for each category
     if show_quartiles:
         for disp in dfp[color_col].unique():
