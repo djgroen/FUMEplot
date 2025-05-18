@@ -1,9 +1,10 @@
 NamedStocksByTimestep:
-  modes: ["all"]
+  modes: ["None"]
 
 NamedSingleByTimestep:
-  modes: ["None"]
+  modes: ["line_chart"]
   filters: ["None"]
-  disaggregator: ["education"]
+  disaggregator: ["age_binned"]
   primary_filter_column: ["destination"]
   primary_filter_value: 
+  

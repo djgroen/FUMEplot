@@ -71,9 +71,15 @@ DISAGG_LABELS = {
 # sequential palette for Age
 AGE_PALETTE = px.colors.sequential.Plasma  # or Viridis, Turbo, etc.
 
-# intuitive gender colors
-GENDER_MAP = {"m": "#1f77b4",   # blue
-              "f": "#e377c2"}   # pink
+GENDER_COLORS = {
+    "f": "#e05779",    # pinkish
+    "m": "#4a78b5"     # steel‐blue
+}
+
+GENDER_NAMES = {
+    "f": "Female",
+    "m": "Male"
+}
 def pretty(name: str) -> str:
     """Turn a raw aggregator key into its user-friendly label."""
     return DISAGG_LABELS.get(name, name.replace('_',' ').title())
@@ -604,6 +610,9 @@ def plotLineOverTime(outdirs, primary_filter_column='source', primary_filter_val
         name_map = EDU_LABELS
     elif line_disaggregator == "property_in_ukraine":
         name_map = PROP_LABELS
+    elif line_disaggregator == "gender":
+        palette = GENDER_COLORS
+        name_map = GENDER_NAMES
     else:
         name_map = {}
 
@@ -642,7 +651,48 @@ def plotLineOverTime(outdirs, primary_filter_column='source', primary_filter_val
         print(f"[INFO] saved PNG {png}")
     #plt.show()
     plt.close()
+    
+    # 6. Interactive Plotly fan plot
+    # melt into long form: columns = time, category, median, q25, q75
+    rows = []
+    for ti, t in enumerate(all_times):
+        for j, cat in enumerate(all_cats):
+            # for gender, cat is 'f' or 'm'; map it now to full name
+            disp = cat
+            if line_disaggregator=='gender':
+                disp = GENDER_NAMES.get(cat, cat)
+            rows.append({
+                'time': t,
+                pretty(line_disaggregator): disp,
+                'median': med[ti,j],
+                'q25':    q25[ti,j],
+                'q75':    q75[ti,j]
+            })
+    dfp = pd.DataFrame(rows)
 
+    # pick up which column we’re coloring by
+    color_col = pretty(line_disaggregator)
+    color_map = None
+    if line_disaggregator=='gender':
+        # map the human labels to your exact hexes
+        color_map = {
+            GENDER_NAMES['f']: GENDER_COLORS['f'],
+            GENDER_NAMES['m']: GENDER_COLORS['m']
+        }
+
+    fig = px.line(
+        dfp,
+        x='time',
+        y='median',
+        color=color_col,
+        color_discrete_map=color_map,
+        title=(f"Returnees Over Time<br>"
+               f"(filtered {primary_filter_column}="
+               f"{primary_filter_value or 'All'})"),
+        labels={'median':'Median No. of Returnees (×1000)','time':'Time (Months)'}
+    )
+
+    '''
     # Interactive Plotly fan plot
     # melt into long form: columns = time, category, median, q25, q75
     rows = []
@@ -656,35 +706,44 @@ def plotLineOverTime(outdirs, primary_filter_column='source', primary_filter_val
                 'q75':    q75[ti,j]
             })
     dfp = pd.DataFrame(rows)
+    
+    color_map = palette if line_disaggregator=="gender" else None
 
     fig = px.line(dfp,
                   x='time',
                   y='median',
                   color=line_disaggregator,
+                  color_discrete_map={
+                    'f': GENDER_COLORS['f'],
+                    'm': GENDER_COLORS['m']
+                    } if line_disaggregator=='gender' else None,
                   title=(f"Returnees Over Time<br>"
                          f"(filtered {primary_filter_column}="
                          f"{primary_filter_value or 'All'})"),
                   labels={'median':'Median No. of Returnees (x1000)','time':'Time (Months)'})
+                  
+    '''
     # add the shading for each category
     if show_quartiles:
-        for disp in dfp[line_disaggregator].unique():
-            dsub = dfp[dfp[line_disaggregator]==disp]
-            fig.add_traces(px.scatter(dsub, x='time', y='q25').update_traces(
-                line=dict(width=0),
-                fill='tonexty',
-                fillcolor='rgba(0,0,0,0)',  # invisible, but needed to anchor
-                name=f"{disp} 25th pct"
-            ).data)
-            fig.add_traces(px.scatter(dsub, x='time', y='q75').update_traces(
-                line=dict(width=0),
-                fill='tonexty',
-                fillcolor='rgba(0,0,0,0.1)',  # light grey shading
-                name=f"{disp} 75th pct"
-            ).data)
+        for disp in dfp[color_col].unique():
+            dsub = dfp[dfp[color_col] == disp]
+            fig.add_traces(
+                px.scatter(dsub, x='time', y='q25')
+                .update_traces(line=dict(width=0), fill='tonexty', fillcolor='rgba(0,0,0,0)', name=f"{disp} 25th pct").data)
+            fig.add_traces(
+                px.scatter(dsub, x='time', y='q75')
+                .update_traces(line=dict(width=0), fill='tonexty', fillcolor='rgba(0,0,0,0.1)', name=f"{disp} 75th pct").data)
     
     # remove/gray‐out all of the point markers on the median traces
     for trace in fig.data:
-        trace.update(mode="lines")
+        # keep the original key ("f" or "m") in legendgroup
+        key = trace.name
+        trace.legendgroup = key
+        # rename only the label that shows in the legend
+        if key in GENDER_NAMES:
+            trace.name = GENDER_NAMES[key]
+        # draw only lines (no markers)
+        trace.update(mode="lines")        
     
     fig.update_layout(title_font_size=25, font=dict(size=18), legend=dict(font=dict(size=18)), legend_title_text=pretty(line_disaggregator), xaxis_title_font_size=24, yaxis_title_font_size=24, xaxis_tickfont_size=20, yaxis_tickfont_size=20, xaxis_type='linear')
 
