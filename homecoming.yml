@@ -1,8 +1,8 @@
 NamedStocksByTimestep:
-  modes: ["None"]
+  modes: ["default"]
 
 NamedSingleByTimestep:
-  modes: ["line_chart"]
+  modes: ["default"]
   filters: ["None"]
   disaggregator: ["age_binned"]
   primary_filter_column: ["destination"]
