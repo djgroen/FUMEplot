@@ -405,14 +405,43 @@ def plotStackedBar(outdirs, disaggregator='age_binned', filters=None, save_fig=T
             print(f"[ERROR] Missing '{agg_col}' or 'destination' in data – aborting.")
             return
 
-        # build one pivot: rows=destination, cols=agg_col, values=row-counts
+        # --- NET-ARRIVALS MAGIC ---
+        # 1) count arrivals by (destination × category)
+        arr = (
+            df.assign(arrival=1)
+              .groupby(["destination", agg_col])["arrival"]
+              .sum()
+              .reset_index()
+        )
+        # 2) count departures by (source × category)
+        dep = (
+            df.assign(departure=1)
+              .groupby(["source", agg_col])["departure"]
+              .sum()
+              .reset_index()
+              .rename(columns={"source": "destination"})
+        )
+        # 3) merge, fill missing with 0, compute net = arr - dep
+        net = pd.merge(
+        arr, dep,
+        on=["destination", agg_col],
+        how="outer"
+    )
+        # only fill the two numeric columns
+        net["arrival"]   = net["arrival"].fillna(0)
+        net["departure"] = net["departure"].fillna(0)
+
+        # now compute net arrivals
+        net["net"] = net["arrival"] - net["departure"]
+
+        # 4) pivot into destination×category net arrivals
         pivot = (
-            df
-            .groupby(['destination', agg_col])
-            .size()              # count rows per pair
-            .unstack(fill_value=0)  # make wide table, fill missing combos with 0
+            net.groupby(["destination", agg_col])["net"]
+               .sum()
+               .unstack(fill_value=0)
         )
         per_run_tables.append(pivot)
+        # --- end net-arrivals ---
 
     # if no valid runs give error
     if not per_run_tables:
@@ -500,6 +529,11 @@ def plotStackedBar(outdirs, disaggregator='age_binned', filters=None, save_fig=T
         var_name=disaggregator,
         value_name="mean_count"
     )
+    
+    color_map = None
+    if disaggregator=="gender":
+        df_long['gender'] = df_long['gender'].map(GENDER_NAMES)
+        color_map = {GENDER_NAMES[k]: GENDER_COLORS[k] for k in GENDER_COLORS}
 
     fig = px.bar(
         df_long,
@@ -507,6 +541,7 @@ def plotStackedBar(outdirs, disaggregator='age_binned', filters=None, save_fig=T
         y="mean_count",
         color=disaggregator,
         barmode="stack",
+        color_discrete_map=color_map,
         title=f"Mean Arrivals by Destination, Stacked by {pretty_name}",
         labels={"mean_count": "Mean No. of Returnees (x1000)",
                 "destination": "Destination", disaggregator: pretty_name}
@@ -517,7 +552,7 @@ def plotStackedBar(outdirs, disaggregator='age_binned', filters=None, save_fig=T
     fig.update_yaxes(
         tickmode="linear",
         tick0=0,
-        dtick=50,                  # ticks every 50
+        dtick=2,                  # ticks every 2
         showgrid=True,             # main grid lines
         gridcolor="LightGray",
         gridwidth=1,
