@@ -503,7 +503,8 @@ def plotStackedBar(outdirs, disaggregator='age_binned', filters=None, save_fig=T
         
     elif disaggregator == "property_in_ukraine":
         plot_df.rename(columns=PROP_LABELS, inplace=True)
-
+        
+    '''
     # 5. Static PNG via Matplotlib
     plt.figure(figsize=(12, 7))
     plot_df.plot(kind='bar', stacked=True, ax=plt.gca())
@@ -517,11 +518,13 @@ def plotStackedBar(outdirs, disaggregator='age_binned', filters=None, save_fig=T
     # ensure output folder exists
     Path(plot_folder).mkdir(parents=True, exist_ok=True)
     png_out = os.path.join(plot_folder, f"stacked_bar_{disaggregator}.png")
-    if save_fig:
-        plt.savefig(png_out, dpi=150)
-        print(f"[INFO] Saved PNG to {png_out}")
-    plt.close()
-
+  #  if save_fig:
+   #     plt.savefig(png_out, dpi=150)
+    #    print(f"[INFO] Saved PNG to {png_out}")
+  #  plt.close()
+    '''
+    pretty_name = pretty(disaggregator)
+    
     # 6. Interactive HTML via Plotly
     plot_df.index.name = "destination"
     df_long = plot_df.reset_index().melt(
@@ -542,8 +545,8 @@ def plotStackedBar(outdirs, disaggregator='age_binned', filters=None, save_fig=T
         color=disaggregator,
         barmode="stack",
         color_discrete_map=color_map,
-        title=f"Mean Arrivals by Destination, Stacked by {pretty_name}",
-        labels={"mean_count": "Mean No. of Returnees (x1000)",
+        title=f"Net Arrivals by Destination, Stacked by {pretty_name}",
+        labels={"mean_count": "Net No. of Returnees (x1000)",
                 "destination": "Destination", disaggregator: pretty_name}
     )
     fig.update_layout(xaxis_tickangle=-45, yaxis=dict(tickmode='linear', tick0=0, dtick=50), title_font_size=25, font=dict(size=18), legend=dict(font=dict(size=18)), legend_title_text=pretty(disaggregator), xaxis_title_font_size=24, yaxis_title_font_size=24, xaxis_tickfont_size=20, yaxis_tickfont_size=20, margin=dict(l=120, r=20, t=80, b=80))
@@ -552,7 +555,7 @@ def plotStackedBar(outdirs, disaggregator='age_binned', filters=None, save_fig=T
     fig.update_yaxes(
         tickmode="linear",
         tick0=0,
-        dtick=2,                  # ticks every 2
+        dtick=50,                  # ticks every 2
         showgrid=True,             # main grid lines
         gridcolor="LightGray",
         gridwidth=1,
@@ -650,7 +653,9 @@ def plotLineOverTime(outdirs, primary_filter_column='source', primary_filter_val
         name_map = GENDER_NAMES
     else:
         name_map = {}
-
+    
+    pretty_name = pretty(line_disaggregator)
+    '''
     # Static Matplotlib fan plot
     plt.figure(figsize=(12,6))
     for j, cat in enumerate(all_cats):
@@ -681,11 +686,12 @@ def plotLineOverTime(outdirs, primary_filter_column='source', primary_filter_val
     Path(plot_folder).mkdir(exist_ok=True, parents=True)
     png = os.path.join(plot_folder,
                        f"fan_{primary_filter_column}_{primary_filter_value}_{line_disaggregator}.png")
-    if save_fig:
-        plt.savefig(png, dpi=150)
-        print(f"[INFO] saved PNG {png}")
+  #  if save_fig:
+  #      plt.savefig(png, dpi=150)
+  #      print(f"[INFO] saved PNG {png}")
     #plt.show()
-    plt.close()
+  #  plt.close()
+  '''
     
     # 6. Interactive Plotly fan plot
     # melt into long form: columns = time, category, median, q25, q75
@@ -693,7 +699,7 @@ def plotLineOverTime(outdirs, primary_filter_column='source', primary_filter_val
     for ti, t in enumerate(all_times):
         for j, cat in enumerate(all_cats):
             # for gender, cat is 'f' or 'm'; map it now to full name
-            disp = cat
+            disp = name_map.get(cat, cat)
             if line_disaggregator=='gender':
                 disp = GENDER_NAMES.get(cat, cat)
             rows.append({
@@ -724,7 +730,7 @@ def plotLineOverTime(outdirs, primary_filter_column='source', primary_filter_val
         title=(f"Returnees Over Time<br>"
                f"(filtered {primary_filter_column}="
                f"{primary_filter_value or 'All'})"),
-        labels={'median':'Median No. of Returnees (×1000)','time':'Time (Months)'}
+        labels={'median':'Net No. of Returnees (×1000)','time':'Time (Months)'}
     )
 
     # add the shading for each category
@@ -749,7 +755,7 @@ def plotLineOverTime(outdirs, primary_filter_column='source', primary_filter_val
         # draw only lines (no markers)
         trace.update(mode="lines")        
     
-    fig.update_layout(title_font_size=25, font=dict(size=18), legend=dict(font=dict(size=18)), legend_title_text=pretty(line_disaggregator), xaxis_title_font_size=24, yaxis_title_font_size=24, xaxis_tickfont_size=20, yaxis_tickfont_size=20, xaxis_type='linear')
+    fig.update_layout(title_font_size=25, font=dict(size=18), legend=dict(font=dict(size=18)), yaxis=dict(tickmode='linear', dtick=50), legend_title_text=pretty(line_disaggregator), xaxis_title_font_size=24, yaxis_title_font_size=24, xaxis_tickfont_size=20, yaxis_tickfont_size=20, xaxis_type='linear')
 
     html = os.path.join(plot_folder,
                         f"fan_{primary_filter_column}_{primary_filter_value}_{line_disaggregator}.html")
