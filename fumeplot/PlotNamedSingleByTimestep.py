@@ -10,6 +10,7 @@ import matplotlib.patches as mpatches
 import matplotlib.lines as mlines
 import plotly.graph_objects as go
 import plotly.express as px
+from dateutil.relativedelta import relativedelta
 
 from matplotlib.backends.backend_pdf import PdfPages
 from contextlib import nullcontext
@@ -546,25 +547,24 @@ def plotStackedBar(outdirs, disaggregator='age_binned', filters=None, save_fig=T
         barmode="stack",
         color_discrete_map=color_map,
         title=f"Net Arrivals by Destination, Stacked by {pretty_name}",
-        labels={"mean_count": "Net No. of Returnees (x1000)",
+        labels={"mean_count": "Net No. of Returnees (x100)",
                 "destination": "Destination", disaggregator: pretty_name}
     )
-    fig.update_layout(xaxis_tickangle=-45, yaxis=dict(tickmode='linear', tick0=0, dtick=50), title_font_size=25, font=dict(size=18), legend=dict(font=dict(size=18)), legend_title_text=pretty(disaggregator), xaxis_title_font_size=24, yaxis_title_font_size=24, xaxis_tickfont_size=20, yaxis_tickfont_size=20, margin=dict(l=120, r=20, t=80, b=80))
+    fig.update_layout(xaxis_tickangle=-45, yaxis=dict(tickmode='linear', tick0=0, dtick=100), title_font_size=25, font=dict(size=18), legend=dict(font=dict(size=18)), legend_title_text=pretty(disaggregator), xaxis_title_font_size=24, yaxis_title_font_size=24, xaxis_tickfont_size=20, yaxis_tickfont_size=20, margin=dict(l=120, r=20, t=80, b=80))
     
-    # y-axis grid
+    # Choose dtick based on max mean_count value
+    max_val = df_long['mean_count'].max()
+    dtick_val = 100 if max_val > 100 else 25
+
     fig.update_yaxes(
-        tickmode="linear",
-        tick0=0,
-        dtick=50,                  # ticks every 2
-        showgrid=True,             # main grid lines
-        gridcolor="LightGray",
-        gridwidth=1,
-        minor=dict(                 # and minor grid lines halfway between the 50’s
-            tick0=0,
-            dtick=25,
-            showgrid=True,
-            gridcolor="LightGray",
-            gridwidth=0.5))
+    tickmode="linear",
+    tick0=0,
+    dtick=dtick_val,
+    showgrid=True,
+    gridcolor="LightGray",
+    gridwidth=1,
+    )
+
         
     html_out = os.path.join(plot_folder, f"stacked_bar_{disaggregator}.html")
     fig.write_html(html_out)
@@ -679,7 +679,7 @@ def plotLineOverTime(outdirs, primary_filter_column='source', primary_filter_val
               f"{primary_filter_value or 'All'})")
     pretty_name = pretty(line_disaggregator)
     plt.xlabel("Time (months)")
-    plt.ylabel("Number of Returnees (x1000)")
+    plt.ylabel("Number of Returnees (x100)")
     plt.legend(ncol=2, fontsize='small')
     plt.tight_layout()
 
@@ -703,13 +703,22 @@ def plotLineOverTime(outdirs, primary_filter_column='source', primary_filter_val
             if line_disaggregator=='gender':
                 disp = GENDER_NAMES.get(cat, cat)
             rows.append({
-                'time': t,
+                'time': all_times[ti],  # FIXED: use the actual time value
                 pretty(line_disaggregator): disp,
                 'median': med[ti,j],
                 'q25':    q25[ti,j],
                 'q75':    q75[ti,j]
             })
     dfp = pd.DataFrame(rows)
+    
+    # Define the real‐date start:
+    start = pd.to_datetime("2025-03-01")     
+
+    # Convert the integer “month offsets” into real datetimes:
+    dfp['month'] = dfp['time'].astype(int).apply(
+    lambda m: start + relativedelta(months=(m))
+    )
+
 
     # pick up which column we’re coloring by
     color_col = pretty(line_disaggregator)
@@ -723,14 +732,14 @@ def plotLineOverTime(outdirs, primary_filter_column='source', primary_filter_val
 
     fig = px.line(
         dfp,
-        x='time',
+        x='month',
         y='median',
         color=color_col,
         color_discrete_map=color_map,
         title=(f"Returnees Over Time<br>"
                f"(filtered {primary_filter_column}="
                f"{primary_filter_value or 'All'})"),
-        labels={'median':'Net No. of Returnees (×1000)','time':'Time (Months)'}
+        labels={'median':'Net No. of Returnees (×100)','time':'Time (Months)'}
     )
 
     # add the shading for each category
@@ -738,12 +747,19 @@ def plotLineOverTime(outdirs, primary_filter_column='source', primary_filter_val
         for disp in dfp[color_col].unique():
             dsub = dfp[dfp[color_col] == disp]
             fig.add_traces(
-                px.scatter(dsub, x='time', y='q25')
+                px.scatter(dsub, x='month', y='q25')
                 .update_traces(line=dict(width=0), fill='tonexty', fillcolor='rgba(0,0,0,0)', name=f"{disp} 25th pct").data)
             fig.add_traces(
-                px.scatter(dsub, x='time', y='q75')
+                px.scatter(dsub, x='month', y='q75')
                 .update_traces(line=dict(width=0), fill='tonexty', fillcolor='rgba(0,0,0,0.1)', name=f"{disp} 75th pct").data)
     
+    # Format the axis tick
+        fig.update_xaxes(
+        dtick="M1",            # tick every month
+        tickformat="%b %Y",     # abbreviated month + year
+        tickangle=45
+        )
+
     # remove/gray‐out all of the point markers on the median traces
     for trace in fig.data:
         # keep the original key ("f" or "m") in legendgroup
@@ -755,13 +771,14 @@ def plotLineOverTime(outdirs, primary_filter_column='source', primary_filter_val
         # draw only lines (no markers)
         trace.update(mode="lines")        
     
-    fig.update_layout(title_font_size=25, font=dict(size=18), legend=dict(font=dict(size=18)), yaxis=dict(tickmode='linear', dtick=50), legend_title_text=pretty(line_disaggregator), xaxis_title_font_size=24, yaxis_title_font_size=24, xaxis_tickfont_size=20, yaxis_tickfont_size=20, xaxis_type='linear')
+    fig.update_layout(title_font_size=25, font=dict(size=18), legend=dict(font=dict(size=18)), yaxis=dict(tickmode='linear', dtick=200, range = [0, dfp['median'].max() * 1.1], autorange=False), legend_title_text=pretty(line_disaggregator), xaxis_title_font_size=24, yaxis_title_font_size=24, xaxis_tickfont_size=20, yaxis_tickfont_size=20)
 
     html = os.path.join(plot_folder,
                         f"fan_{primary_filter_column}_{primary_filter_value}_{line_disaggregator}.html")
     fig.write_html(html)
     print(f"[INFO] saved HTML {html}")
     #fig.show()
+
 
 
 def plotNamedSingleByTimestep(code, outdirs, plot_type, FUMEheader, filters=[], disaggregator=None, primary_filter_column=None, primary_filter_value=None, plot_path='../..'):
