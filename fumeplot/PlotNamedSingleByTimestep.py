@@ -345,6 +345,444 @@ import pandas as pd
 import plotly.express as px
 from pathlib import Path
 
+# colour mapping for property status
+PROP_COLORS = {
+    "No Property":       "#a6cee3",
+    "Unknown Status":    "#1f78b4",
+    "Fully Damaged":     "#b2df8a",
+    "Partially Damaged": "#33a02c",
+    "Intact":            "#fb9a99"
+}
+
+def plotStackedBarProportions_Property(outdirs,
+                                       filters=None,
+                                       save_fig=True,
+                                       plot_folder="plots"):
+    """
+    100 %-stacked bar of net-arrival *property_in_ukraine* proportions
+    for each destination, averaged across ensemble runs.
+
+    Saves HTML to  <plot_folder>/stacked_bar_property_proportions.html
+    """
+    import pandas as pd, numpy as np, os
+    from pathlib import Path
+    import plotly.express as px
+
+    if filters is None or filters == ["None"]:
+        filters = []
+
+    per_run_tables = []
+
+    
+    for d in outdirs:
+        fp = os.path.join(d, "migration.log")
+        if not os.path.exists(fp):
+            continue
+
+        df = pd.read_csv(fp)
+
+        # user filters
+        for col, op, val in filters:
+            if   op == "==": df = df[df[col] ==  val]
+            elif op == "!=": df = df[df[col] !=  val]
+            elif op == ">":  df = df[df[col] >   val]
+            elif op == "<":  df = df[df[col] <   val]
+            elif op == ">=": df = df[df[col] >=  val]
+            elif op == "<=": df = df[df[col] <=  val]
+
+        if "property_in_ukraine" not in df.columns or "destination" not in df.columns:
+            continue
+
+        df["property_in_ukraine"] = df["property_in_ukraine"].map(PROP_LABELS)
+
+        arr = (df.assign(arrival=1)
+                 .groupby(["destination", "property_in_ukraine"])["arrival"]
+                 .sum().reset_index())
+
+        dep = (df.assign(departure=1)
+                 .groupby(["source", "property_in_ukraine"])["departure"]
+                 .sum().reset_index()
+                 .rename(columns={"source": "destination"}))
+
+        net = (pd.merge(arr, dep,
+                        on=["destination", "property_in_ukraine"],
+                        how="outer")
+                 .fillna(0))
+        net["net"] = net["arrival"] - net["departure"]
+
+        pivot = (net.groupby(["destination", "property_in_ukraine"])["net"]
+                       .sum().unstack(fill_value=0))
+        per_run_tables.append(pivot)
+
+    if not per_run_tables:
+        print("[INFO] No data for property proportions; skipping plot.")
+        return
+
+    all_dest = sorted(set().union(*(t.index   for t in per_run_tables)))
+    all_prop = sorted(set().union(*(t.columns for t in per_run_tables)))
+
+    R, D, C = len(per_run_tables), len(all_dest), len(all_prop)
+    arr_3d  = np.zeros((R, D, C), dtype=float)
+    for i, tbl in enumerate(per_run_tables):
+        arr_3d[i] = tbl.reindex(index=all_dest,
+                                columns=all_prop,
+                                fill_value=0).values
+
+    mean_df    = pd.DataFrame(arr_3d.mean(axis=0), index=all_dest, columns=all_prop)
+    percent_df = mean_df.div(mean_df.sum(axis=1), axis=0) * 100
+
+    # tidy destination names
+    percent_df.index = (percent_df.index.astype(str)
+                                         .str.strip()
+                                         .str.lower()
+                                         .str.replace("_", "-"))
+
+    # keep Ukrainian oblasts
+    ukr_oblasts = [
+        "kyivska","zakarpatska","ivano-frankivska","ternopilska","rivnenska",
+        "volynska","zhytomyrska","khmelnytska","vinnytska","chernivetska",
+        "kyiv","chernihivska","sumska","cherkaska","poltavska","kharkivska",
+        "dnipropetrovska","kirovohradska","odeska","mykolaiivska","khersonska",
+        "donetska","zaporizka","luhanska","autonomous-republic-of-crimea"
+    ]
+    percent_df = percent_df.loc[percent_df.index.isin(ukr_oblasts)]
+    if percent_df.empty:
+        print("[INFO] Property plot: nothing left after oblast filter.")
+        return
+
+    df_long = percent_df.reset_index()
+    df_long = df_long.rename(columns={df_long.columns[0]: "destination"})
+    df_long = df_long.melt(
+        id_vars="destination",
+        var_name="property",
+        value_name="percentage"
+    )
+    df_long["pct_label"] = df_long["percentage"].apply(lambda v: f"{v:.1f}%")
+
+    fig = px.bar(
+        df_long,
+        x="destination",
+        y="percentage",
+        color="property",
+        barmode="stack",
+        color_discrete_map=PROP_COLORS,
+        text="pct_label",
+        title="Property-Status Proportions by Destination (100 % stacked)",
+        labels={"percentage": "Proportion (%)",
+                "destination": "Destination",
+                "property": "Property in Ukraine"}
+    )
+    fig.update_traces(textposition="inside")
+    fig.update_layout(
+        xaxis_tickangle=-45,
+        title_font_size=25,
+        font=dict(size=18),
+        legend=dict(font=dict(size=18)),
+        margin=dict(l=120, r=20, t=80, b=80),
+        yaxis=dict(range=[0, 100],
+                   dtick=20,
+                   showgrid=True,
+                   gridcolor="LightGray")
+    )
+
+    Path(plot_folder).mkdir(parents=True, exist_ok=True)
+    html_out = os.path.join(plot_folder, "stacked_bar_property_proportions.html")
+    if save_fig:
+        fig.write_html(html_out)
+        print(f"[INFO] Saved property-proportions plot to {html_out}")
+
+
+def plotStackedBarProportions_Gender(outdirs,
+                                     filters=None,
+                                     save_fig=True,
+                                     plot_folder="plots"):
+    """
+    100 %-stacked bar of net-arrival gender proportions (f / m)
+    for every destination, averaged across all ensemble runs.
+    """
+    import pandas as pd, numpy as np, os
+    from pathlib import Path
+    import plotly.express as px
+
+    if filters is None or filters == ["None"]:
+        filters = []
+
+    
+    per_run_tables = []
+    for d in outdirs:
+        fp = os.path.join(d, "migration.log")
+        if not os.path.exists(fp):
+            continue
+
+        df = pd.read_csv(fp)
+
+        # user filters
+        for col, op, val in filters:
+            if   op == "==": df = df[df[col] ==  val]
+            elif op == "!=": df = df[df[col] !=  val]
+            elif op == ">":  df = df[df[col] >   val]
+            elif op == "<":  df = df[df[col] <   val]
+            elif op == ">=": df = df[df[col] >=  val]
+            elif op == "<=": df = df[df[col] <=  val]
+
+        if "gender" not in df.columns or "destination" not in df.columns:
+            continue
+
+        arr = (df.assign(arrival=1)
+                 .groupby(["destination", "gender"])["arrival"]
+                 .sum().reset_index())
+
+        dep = (df.assign(departure=1)
+                 .groupby(["source", "gender"])["departure"]
+                 .sum().reset_index()
+                 .rename(columns={"source": "destination"}))
+
+        net = (pd.merge(arr, dep, on=["destination", "gender"], how="outer")
+                 .fillna(0))
+        net["net"] = net["arrival"] - net["departure"]
+
+        pivot = (net.groupby(["destination", "gender"])["net"]
+                       .sum().unstack(fill_value=0))
+        per_run_tables.append(pivot)
+
+    if not per_run_tables:
+        print("[INFO] No data for gender proportions; skipping plot.")
+        return
+
+    # 
+    all_dest = sorted(set().union(*(t.index   for t in per_run_tables)))
+    all_gen  = sorted(set().union(*(t.columns for t in per_run_tables)))
+
+    R, D, C = len(per_run_tables), len(all_dest), len(all_gen)
+    arr_3d  = np.zeros((R, D, C), dtype=float)
+    for i, tbl in enumerate(per_run_tables):
+        arr_3d[i] = tbl.reindex(index=all_dest,
+                                columns=all_gen,
+                                fill_value=0).values
+
+    mean_df    = pd.DataFrame(arr_3d.mean(axis=0), index=all_dest, columns=all_gen)
+    percent_df = mean_df.div(mean_df.sum(axis=1), axis=0) * 100
+
+    
+    percent_df.index = (percent_df.index.astype(str)
+                                         .str.strip()
+                                         .str.lower()
+                                         .str.replace("_", "-"))
+
+    ukr_oblasts = [
+        "kyivska","zakarpatska","ivano-frankivska","ternopilska","rivnenska",
+        "volynska","zhytomyrska","khmelnytska","vinnytska","chernivetska",
+        "kyiv","chernihivska","sumska","cherkaska","poltavska","kharkivska",
+        "dnipropetrovska","kirovohradska","odeska","mykolaiivska","khersonska",
+        "donetska","zaporizka","luhanska","autonomous-republic-of-crimea"
+    ]
+    percent_df = percent_df.loc[percent_df.index.isin(ukr_oblasts)]
+    if percent_df.empty:
+        print("[INFO] Gender plot: nothing left after oblast filter.")
+        return
+
+    
+    df_long = percent_df.reset_index()                          # column 'index'
+    df_long = df_long.rename(columns={df_long.columns[0]: "destination"})
+    df_long = df_long.melt(id_vars="destination",
+                           var_name="gender",
+                           value_name="percentage")
+    df_long["pct_label"] = df_long["percentage"].apply(lambda v: f"{v:.1f}%")
+
+    
+    fig = px.bar(
+        df_long,
+        x="destination",
+        y="percentage",
+        color="gender",
+        barmode="stack",
+        color_discrete_map=GENDER_COLORS,
+        text="pct_label",
+        title="Gender Proportions by Destination (100 % stacked)",
+        labels={"percentage": "Proportion (%)",
+                "destination": "Destination",
+                "gender": "Gender (f / m)"}
+    )
+    fig.update_traces(textposition="inside")
+    fig.update_layout(
+        xaxis_tickangle=-45,
+        title_font_size=25,
+        font=dict(size=18),
+        legend=dict(font=dict(size=18)),
+        margin=dict(l=120, r=20, t=80, b=80),
+        yaxis=dict(range=[0, 100],
+                   dtick=20,
+                   showgrid=True,
+                   gridcolor="LightGray")
+    )
+
+    Path(plot_folder).mkdir(parents=True, exist_ok=True)
+    html_out = os.path.join(plot_folder, "stacked_bar_gender_proportions.html")
+    if save_fig:
+        fig.write_html(html_out)
+        print(f"[INFO] Saved gender-proportions plot to {html_out}")
+
+# A mapping from each education label to a specific color for the stacked bars
+color_map = {
+    "No Education": "#8dd3c7",
+    "Primary": "#ffffb3",
+    "Secondary": "#bebada",
+    "Vocational": "#fb8072",
+    "Bachelor": "#80b1d3",
+    "Specialist": "#fdb462",
+    "Master Plus": "#b3de69"
+}
+
+EDU_LABELS = {
+    0: "No Education",
+    1: "Primary",
+    2: "Secondary",
+    4: "Vocational",
+    3: "Bachelor",
+    5: "Specialist",
+    6: "Master Plus"
+}
+
+def plotStackedBarProportions_Education(outdirs, filters=None, save_fig=True, plot_folder="plots"):
+    """
+    Reads every migration.log in `outdirs`, applies optional filters,
+    then groups by `destination` and the 'education' column.
+    For each run, it builds a destination×education table of NET arrivals (arrivals minus departures).
+    Averages those tables across runs, normalizes each row to sum to 100%,
+    and plots a 100%‐stacked bar chart of percentages by destination.
+    """
+    if filters is None or filters == ["None"]:
+        filters = []
+
+    per_run_tables = []
+
+    for run_dir in outdirs:
+        log_path = os.path.join(run_dir, "migration.log")
+        if not os.path.exists(log_path):
+            continue
+
+        df = pd.read_csv(log_path)
+
+        # Apply any user‐specified filters
+        for col, op, val in filters:
+            if op == "==":
+                df = df[df[col] == val]
+            elif op == "!=":
+                df = df[df[col] != val]
+            elif op == ">":
+                df = df[df[col] > val]
+            elif op == "<":
+                df = df[df[col] < val]
+            elif op == ">=":
+                df = df[df[col] >= val]
+            elif op == "<=":
+                df = df[df[col] <= val]
+
+        agg_col = "education"
+
+        # Abort if required columns are missing
+        if agg_col not in df.columns or 'destination' not in df.columns:
+            return
+
+        # Map education codes to readable labels
+        df['education'] = df['education'].map(EDU_LABELS)
+
+        # Count arrivals by (destination × education)
+        arr = (
+            df.assign(arrival=1)
+              .groupby(["destination", agg_col])["arrival"]
+              .sum()
+              .reset_index()
+        )
+        # Count departures by (source × education), rename "source" → "destination"
+        dep = (
+            df.assign(departure=1)
+              .groupby(["source", agg_col])["departure"]
+              .sum()
+              .reset_index()
+              .rename(columns={"source": "destination"})
+        )
+        # Merge, fill NaNs with 0, compute net = arrival − departure
+        net = pd.merge(arr, dep, on=["destination", agg_col], how="outer")
+        net["arrival"]   = net["arrival"].fillna(0)
+        net["departure"] = net["departure"].fillna(0)
+        net["net"]  = net["arrival"] - net["departure"]
+
+        # Pivot: rows = destination, columns = education label, values = net
+        pivot = net.groupby(["destination", agg_col])["net"].sum().unstack(fill_value=0)
+        per_run_tables.append(pivot)
+
+    if not per_run_tables:
+        return
+
+    # Align all runs onto the same set of destinations & education categories
+    all_dest = sorted(set().union(*(tbl.index for tbl in per_run_tables)))
+    all_cats = sorted(set().union(*(tbl.columns for tbl in per_run_tables)))
+
+    R, D, C = len(per_run_tables), len(all_dest), len(all_cats)
+    arr_3d = np.zeros((R, D, C), dtype=float)
+    for i, tbl in enumerate(per_run_tables):
+        tbl_full = tbl.reindex(index=all_dest, columns=all_cats, fill_value=0)
+        arr_3d[i] = tbl_full.values
+
+    # Compute mean across runs
+    mean_df = pd.DataFrame(arr_3d.mean(axis=0), index=all_dest, columns=all_cats)
+    # Normalize each row to sum to 100%
+    percent_df = mean_df.div(mean_df.sum(axis=1), axis=0) * 100
+    percent_df.index = (
+        percent_df.index.astype(str).str.strip().str.lower().str.replace("_", "-")
+    )
+
+    # Filter to known Ukrainian oblasts
+    ukr_oblasts = [
+        "kyivska", "zakarpatska", "ivano-frankivska", "ternopilska",
+        "rivnenska", "volynska", "zhytomyrska", "khmelnytska",
+        "vinnytska", "chernivetska", "kyiv", "chernihivska",
+        "sumska", "cherkaska", "poltavska", "kharkivska",
+        "dnipropetrovska", "kirovohradska", "odeska",
+        "mykolaiivska", "khersonska", "donetska", "zaporizka",
+        "luhanska", "autonomous-republic-of-crimea"
+    ]
+    percent_df = percent_df.loc[percent_df.index.isin(ukr_oblasts)]
+    if percent_df.empty:
+        return
+
+    # Melt wide→long for Plotly
+    percent_df.index.name = "destination"
+    df_long = percent_df.reset_index().melt(
+        id_vars="destination",
+        var_name="education",
+        value_name="percentage"
+    )
+    pretty_name = "Education"
+
+    # Create a new column that contains the percentage formatted as “xx.x%”
+    df_long['pct_label'] = df_long['percentage'].apply(lambda v: f"{v:.1f}%")
+
+    fig = px.bar(
+        df_long,
+        x="destination",
+        y="percentage",
+        color="education",
+        barmode="stack",
+        color_discrete_map=color_map,
+        text="pct_label",
+        title=f"Education Group Proportions by Destination (Stacked by {pretty_name})",
+        labels={
+            "percentage": "Proportion (%)",
+            "destination": "Destination",
+            "education": pretty_name
+        }
+    )
+    fig.update_traces(textposition="inside")
+
+    # Save the plot
+    Path(plot_folder).mkdir(parents=True, exist_ok=True)
+    html_out = os.path.join(plot_folder, f"stacked_bar_education_proportions.html")
+    if save_fig:
+        fig.write_html(html_out)
+        print(f"[INFO] Saved HTML to {html_out}")
+
 # A mapping from each age‐bin label to a specific color for the stacked bars
 color_map = {
     "0-17":  "#1f77b4",
@@ -1028,10 +1466,29 @@ def plotNamedSingleByTimestep(code, outdirs, plot_type, FUMEheader, filters=[], 
         
         # 3.1) 100%-stacked (proportional) bar by age_binned
         plotStackedBarProportions(outdirs=outdirs,
-                        disaggregator="age_binned",
-                        filters=filters,
-                        save_fig=saving,
-                        plot_folder=plotfolder)
+                                    disaggregator="age_binned",
+                                    filters=filters,
+                                    save_fig=saving,
+                                    plot_folder=plotfolder)
+                        
+       # 3.2) 100% stacked bar proportions for education level
+        plotStackedBarProportions_Education(outdirs=outdirs,
+                                                filters=filters,
+                                                save_fig=saving,
+                                                plot_folder=plotfolder)
+         
+       # plot gender proportions
+        plotStackedBarProportions_Gender(outdirs=outdirs,
+                                            filters=filters,
+                                            save_fig=saving,
+                                            plot_folder=plotfolder)
+ 
+        # plot property proportions
+        plotStackedBarProportions_Property(outdirs=outdirs,
+                                                filters=filters,
+                                                save_fig=saving,
+                                                plot_folder=plotfolder)
+        
                         
         plotStackedBar(outdirs=outdirs,
                         disaggregator="education",
