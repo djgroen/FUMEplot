@@ -161,7 +161,11 @@ def plotCounts(plot_num, all_counts, save_fig, plot_folder, combine_plots_pdf):
     # - LatexPlotLib version
     #lpl.tight_layout()  # Uncommented to apply tight layout
 
-    # save plot
+    # save plot    import os
+    import numpy as np
+    import pandas as pd
+    import plotly.express as px
+    from pathlib import Path
     if combine_plots_pdf:
         combine_plots_pdf.savefig(fig)
         print(f"Saved plot {plot_num} to PDF.")
@@ -334,6 +338,195 @@ def plotMigrationSankey(outdirs, save_fig=True, plot_folder="plots"): # CHANGE S
             print(f"[INFO] Sankey PNG saved to {png_path}")
         except Exception as e:
             print(f"[ERROR] Couldn't write PNG: {e}")
+            
+import os
+import numpy as np
+import pandas as pd
+import plotly.express as px
+from pathlib import Path
+
+# A mapping from each age‐bin label to a specific color for the stacked bars
+color_map = {
+    "0-17":  "#1f77b4",
+    "18-29": "#ff7f0e",
+    "30-49": "#2ca02c",
+    "50-64": "#d62728",
+    "65+":   "#9467bd",
+}
+
+def plotStackedBarProportions(outdirs, disaggregator='age_binned', filters=None, save_fig=True, plot_folder="plots"):
+    """
+    Reads every migration.log in `outdirs`, applies optional filters,
+    then groups by `destination` and the chosen `disaggregator` column (e.g. age_binned).
+    For each run, it builds a destination×category table of NET arrivals (arrivals minus departures).
+    Finally, it averages those tables across runs, normalizes each row to sum to 100%,
+    and plots a 100%‐stacked bar chart of percentages by destination.
+    """
+    if filters is None or filters == ["None"]:
+        filters = []
+    # If disaggregator was passed as a list/tuple, grab its first element
+    if isinstance(disaggregator, (list, tuple)) and disaggregator:
+        disaggregator = disaggregator[0]
+
+    per_run_tables = []
+
+    for run_dir in outdirs:
+        log_path = os.path.join(run_dir, "migration.log")
+        if not os.path.exists(log_path):
+            continue
+
+        df = pd.read_csv(log_path)
+
+        # Apply any user‐specified filters
+        for col, op, val in filters:
+            if op == "==":
+                df = df[df[col] == val]
+            elif op == "!=":
+                df = df[df[col] != val]
+            elif op == ">":
+                df = df[df[col] > val]
+            elif op == "<":
+                df = df[df[col] < val]
+            elif op == ">=":
+                df = df[df[col] >= val]
+            elif op == "<=":
+                df = df[df[col] <= val]
+
+        # --- BINNING FOR 'age' OR 'age_binned' ---
+        # Treat "age_binned" exactly like "age": always create the age_binned column
+        if disaggregator in ("age", "age_binned"):
+            if "age" not in df.columns:
+                return  # no raw 'age' column, so cannot bin
+            bins   = [0, 17, 29, 49, 64, 200]
+            labels = ["0-17", "18-29", "30-49", "50-64", "65+"]
+            df['age_binned'] = pd.cut(df['age'], bins=bins, labels=labels, right=True)
+            agg_col = "age_binned"
+        else:
+            agg_col = disaggregator
+
+        # Abort if required columns are missing
+        if agg_col not in df.columns or 'destination' not in df.columns:
+            return
+
+        # Count arrivals by (destination × category)
+        arr = (
+            df.assign(arrival=1)
+              .groupby(["destination", agg_col])["arrival"]
+              .sum()
+              .reset_index()
+        )
+        # Count departures by (source × category), rename "source" → "destination"
+        dep = (
+            df.assign(departure=1)
+              .groupby(["source", agg_col])["departure"]
+              .sum()
+              .reset_index()
+              .rename(columns={"source": "destination"})
+        )
+        # Merge, fill NaNs with 0, compute net = arrival − departure
+        net = pd.merge(arr, dep, on=["destination", agg_col], how="outer")
+
+        # Only fill the numeric columns; do NOT call fillna(0) on the categorical column
+        net["arrival"]   = net["arrival"].fillna(0)
+        net["departure"] = net["departure"].fillna(0)
+        net["net"]  = net["arrival"] - net["departure"]
+
+
+        # Pivot: rows = destination, columns = category, values = net
+        pivot = net.groupby(["destination", agg_col])["net"].sum().unstack(fill_value=0)
+        per_run_tables.append(pivot)
+
+    if not per_run_tables:
+        return
+
+    # Align all runs onto the same set of destinations & categories
+    all_dest = sorted(set().union(*(tbl.index for tbl in per_run_tables)))
+    all_cats = sorted(set().union(*(tbl.columns for tbl in per_run_tables)))
+
+    R, D, C = len(per_run_tables), len(all_dest), len(all_cats)
+    arr_3d = np.zeros((R, D, C), dtype=float)
+    for i, tbl in enumerate(per_run_tables):
+        tbl_full = tbl.reindex(index=all_dest, columns=all_cats, fill_value=0)
+        arr_3d[i] = tbl_full.values
+
+    # Compute mean across runs
+    mean_df = pd.DataFrame(arr_3d.mean(axis=0), index=all_dest, columns=all_cats)
+    # Normalize each row to sum to 100%
+    percent_df = mean_df.div(mean_df.sum(axis=1), axis=0) * 100
+    # Standardize index: lowercase, hyphens instead of underscores
+    percent_df.index = (
+        percent_df.index
+                 .astype(str)
+                 .str.strip()
+                 .str.lower()
+                 .str.replace("_", "-")
+    )
+
+    # Filter to known Ukrainian oblasts
+    ukr_oblasts = [
+        "kyivska", "zakarpatska", "ivano-frankivska", "ternopilska",
+        "rivnenska", "volynska", "zhytomyrska", "khmelnytska",
+        "vinnytska", "chernivetska", "kyiv", "chernihivska",
+        "sumska", "cherkaska", "poltavska", "kharkivska",
+        "dnipropetrovska", "kirovohradska", "odeska",
+        "mykolaiivska", "khersonska", "donetska", "zaporizka",
+        "luhanska", "autonomous-republic-of-crimea"
+    ]
+    percent_df = percent_df.loc[percent_df.index.isin(ukr_oblasts)]
+    if percent_df.empty:
+        return
+
+    # Melt wide→long for Plotly
+    percent_df.index.name = "destination"
+    df_long = percent_df.reset_index().melt(
+        id_vars="destination",
+        var_name=agg_col,
+        value_name="percentage"
+    )
+    pretty_name = agg_col.replace('_', ' ').title()
+
+    # Create a new column that contains the percentage formatted as “xx.x%”
+    df_long['pct_label'] = df_long['percentage'].apply(lambda v: f"{v:.1f}%")
+
+    fig = px.bar(
+        df_long,
+        x="destination",
+        y="percentage",
+        color=agg_col,
+        barmode="stack",
+        color_discrete_map=color_map,
+        text="pct_label",   # use our pre‐formatted strings
+        title=f"Age Group Proportions by Destination (Stacked by {pretty_name})",
+        labels={
+            "percentage": "Proportion (%)",
+            "destination": "Destination",
+            agg_col: pretty_name
+        }
+    )
+
+    # Force text labels inside each bar segment
+    fig.update_traces(textposition="inside")
+
+    
+# Format the text to show one decimal and a “%” sign, and force it inside each segment
+
+    fig.update_layout(
+        xaxis_tickangle=-45,
+        title_font_size=25,
+        font=dict(size=18),
+        legend=dict(font=dict(size=18)),
+        legend_title_text=pretty_name,
+        margin=dict(l=120, r=20, t=80, b=80),
+        yaxis=dict(range=[0, 100], tickmode="linear", tick0=0, dtick=20, showgrid=True, gridcolor="LightGray")
+    )
+
+    # Ensure output folder exists and save HTML
+    Path(plot_folder).mkdir(parents=True, exist_ok=True)
+    html_out = os.path.join(plot_folder, f"stacked_bar_{agg_col}_proportions.html")
+    if save_fig:
+        fig.write_html(html_out)
+        print(f"[INFO] Saved HTML to {html_out}")
+
 
         
 def plotStackedBar(outdirs, disaggregator='age_binned', filters=None, save_fig=True, plot_folder="plots"):
@@ -829,6 +1022,13 @@ def plotNamedSingleByTimestep(code, outdirs, plot_type, FUMEheader, filters=[], 
         # 3) Stacked bar by age‐bins
         plotStackedBar(outdirs=outdirs,
                         disaggregator="age",
+                        filters=filters,
+                        save_fig=saving,
+                        plot_folder=plotfolder)
+        
+        # 3.1) 100%-stacked (proportional) bar by age_binned
+        plotStackedBarProportions(outdirs=outdirs,
+                        disaggregator="age_binned",
                         filters=filters,
                         save_fig=saving,
                         plot_folder=plotfolder)
