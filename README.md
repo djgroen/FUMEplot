@@ -8,8 +8,8 @@ This runs best on Python 3.11 and is recommended to be run in a virtual envirome
 sudo add-apt-repository ppa:deadsnakes/ppa -y
 sudo apt update
 sudo apt install python3.11 python3.11-venv -y
-python3.11 -m venv ~/venvs/py311
-source ~/venvs/py311/bin/activate
+python3.11 -m venv ~/venvs/FUMEplotEnv
+source ~/venvs/FUMEplotEnv/bin/activate
 ```
 
 This creates a virutal enviroment to then install dependencies
