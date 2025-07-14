@@ -9,8 +9,15 @@ Install dependencies by running:
 pip install -r requirements.txt
 ```
 
-## local usage
-For testing try (while in "fumeplot" directory):
+## Local usage
+
+For testing, try these scripts:
+
+First, go to the `fumeplot` directory containing runnable scripts:
+
+```
+cd fumeplot
+```
 
 <!-- ```
 python3 PlotEnsembleLines.py
