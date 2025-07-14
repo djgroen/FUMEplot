@@ -1,6 +1,19 @@
 # FUMEplot
 Facilitated visualisation of Uncertainty in Model Ensemble outputs using plots.
 
+## Python version and virtual enviroment
+This runs best on Python 3.11 and is recommended to be run in a virtual enviroment. 
+
+```
+sudo add-apt-repository ppa:deadsnakes/ppa -y
+sudo apt update
+sudo apt install python3.11 python3.11-venv -y
+python3.11 -m venv ~/venvs/FUMEplotEnv
+source ~/venvs/FUMEplotEnv/bin/activate
+```
+
+This creates a virutal enviroment to then install dependencies
+
 ## Dependencies
 
 Install dependencies by running:
