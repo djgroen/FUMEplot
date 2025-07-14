@@ -32,6 +32,9 @@ First, go to the `fumeplot` directory containing runnable scripts:
 cd fumeplot
 ```
 
+Then, run one of the scripts with Python. 
+Here is an example for plotting different stocks:
+
 <!-- ```
 python3 PlotEnsembleLines.py
 ``` -->
