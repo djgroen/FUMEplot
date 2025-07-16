@@ -15,6 +15,10 @@ from dateutil.relativedelta import relativedelta
 from matplotlib.backends.backend_pdf import PdfPages
 from contextlib import nullcontext
 
+""" This script generates various plots for named single by Timestep. 
+    By single it is indiviudal agents being plotted, 
+    Eg: a geospace plot showing the location of individual agents at a time step and comparing them. """
+
 # font = {'family': 'serif',
 #         'weight': 'bold',
 #         'size': 12}
