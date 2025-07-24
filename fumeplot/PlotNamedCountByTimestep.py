@@ -67,7 +67,7 @@ def plotNamedCountByTimestep(code: str, outdirs, plot_type: str,
     loc_names    = header.loc_names
     sim_idx      = header.sim_indices
     data_idx     = header.data_indices
-    y_label      = header.y_label.replace("#", "Number")
+    y_label      = header.y_label.lstrip("\\").replace("#", "Number")
     combine_pdf  = header.combine_plots_pdf
 
     plotdir = Path(root) / "EnsemblePlots" / f"{code}Plots"
@@ -100,14 +100,31 @@ def plotNamedCountByTimestep(code: str, outdirs, plot_type: str,
                 fi += 1
 
             if plot_type in ("loc_hist_gif", "all"):
-                animateLocationHistogram(df, ens_size, outdf, fi, i, didx,
-                                         loc_names, y_label, True, str(plotdir))
+                animateLocationHistogram(df, ens_size, outdf,
+                                            plot_num=fi,
+                                            loc_index=i,
+                                            data_index=didx,
+                                            loc_names=loc_names,
+                                            x_label=y_label,
+                                            save_fig=True,
+                                            plot_folder=str(plotdir),)
                 fi += 1
 
+                
+
             if plot_type in ("loc_violin_gif", "all") and i == 0:
-                animateLocationViolins(_assemble_full(), ens_size, outdf, fi, 0,
-                                       sim_idx, data_idx, loc_names, y_label,
-                                       True, str(plotdir))
+                animateLocationViolins(_assemble_full(),          # dfFull
+                                        ens_size,                  # ensembleSize
+                                        outdf,                     # outdf
+                                        plot_num=fi,
+                                        loc_index=0,               # keep 0 as in your original logic
+                                        sim_indices=sim_idx,
+                                        data_indices=data_idx,
+                                        loc_names=loc_names,
+                                        y_label=y_label,
+                                        save_fig=True,
+                                        plot_folder=str(plotdir),)
+                fi += 1
 
             if plot_type in ("bar_chart", "all") and i == 0:
                 plot_final_oblast_bar(outdirs, plotdir)
