@@ -1,159 +1,154 @@
-import sys
-import os
+# ───────── std lib ─────────
+from __future__ import annotations
+import sys, numpy as np, pandas as pd
 from pathlib import Path
 from contextlib import nullcontext
-import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
+
+# ───────── 3rd‑party ───────
 import plotly.express as px
+
+# ───────── project helpers –
 import ReadHeaders
-from TimeSeriesPlots import (
-    plotLocation,
-    plotLocationSTDBound,
-    plotLocationDifferences,
-    EnsembleData,
-)
+from TimeSeriesPlots import (plotLocation, plotLocationSTDBound,
+                             plotLocationDifferences, EnsembleData)
+from AnimatedCharts  import (animateLocationHistogram,
+                             animateLocationViolins)
 
-# helper module that houses the animated GIF makers
-from AnimatedCharts import (
-    animateLocationHistogram,
-    animateLocationViolins,
-)
+# NEW: separate helper modules you created earlier
+from SourceHisto      import plotSourceHist
+from MigrationSankey import plotMigrationSankey
+from TimeSeriesFan import plotLineOverTime
+from CountBarCharts import plotStackedBar          
 
-"""High-level driver that produces static time‑series plots + animated GIFs
-for the FUME ‘homecoming’ use‑case (or any other code supported by
-ReadHeaders).
+# ───────────────────────────────────────────────────────────────────────
 
-The script now passes **in‑memory ensemble arrays** to the GIF helpers, so no
-function in animatedcharts ever touches the filesystem.
-"""
 
-# ---------------------------------------------------------------------------
-# 0.  Utility
-# ---------------------------------------------------------------------------
+def _format_labels(lbls):          # tiny util for Matplotlib ticks
+    return [s.replace("_", " ").title() for s in lbls]
 
-def _formatLabels(labels):
-    return [lbl.replace('_', ' ').title() for lbl in labels]
 
-# ---------------------------------------------------------------------------
-# 1.  Final‑timestep bar‑chart helper 
-# ---------------------------------------------------------------------------
-
-def plotFinalOblastBarHTML(outdirs, plot_folder="plots"):
-    run_vals, oblast_cols = [], None
+# Final‑timestep bar (unchanged)
+# ---------------------------------------------------------------------
+def plot_final_oblast_bar(outdirs, folder: Path):
+    run_vals, cols = [], None
     for d in outdirs:
         csv = Path(d) / "out.csv"
         if not csv.exists():
             continue
         df = pd.read_csv(csv)
-        if oblast_cols is None:
-            oblast_cols = [c for c in df.columns if c.startswith("ukr-")]
-        run_vals.append(df.iloc[-1][oblast_cols].astype(float).values)
+        if cols is None:
+            cols = [c for c in df.columns if c.startswith("ukr-")]
+        run_vals.append(df.iloc[-1][cols].astype(float).values)
 
     if not run_vals:
         return
 
-    arr = np.vstack(run_vals)
-    mean_counts = arr.mean(axis=0)
-    names = [c.replace("ukr-", "").replace("-", " ").title() for c in oblast_cols]
-    df_plot = pd.DataFrame({"Oblast": names, "Mean Returnees": mean_counts})
-
-    fig = px.bar(df_plot, x="Oblast", y="Mean Returnees",
-                 title="Mean Returnees by Ukrainian Oblast (final timestep)",
-                 labels={"Mean Returnees": "Returnees", "Oblast": "Oblast"})
+    mean_counts = np.vstack(run_vals).mean(axis=0)
+    names = [c.replace("ukr-", "").replace("-", " ").title() for c in cols]
+    fig = px.bar(
+        {"Oblast": names, "Mean Returnees": mean_counts},
+        x="Oblast", y="Mean Returnees",
+        title="Mean Returnees by Ukrainian Oblast (final timestep)",
+        labels={"Mean Returnees": "Returnees"},
+    )
     fig.update_layout(xaxis_tickangle=-45, margin=dict(l=40, r=20, t=50, b=120))
+    folder.mkdir(parents=True, exist_ok=True)
+    fig.write_html(folder / "final_oblast_bar.html")
 
-    Path(plot_folder).mkdir(parents=True, exist_ok=True)
-    fig.write_html(Path(plot_folder) / "final_oblast_bar.html")
 
-# ---------------------------------------------------------------------------
-# 2.  Main plotting routine
-# ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------
+# master driver
+# ---------------------------------------------------------------------
+def plotNamedCountByTimestep(code: str, outdirs, plot_type: str,
+                             header, *, root="../.."):
 
-def plotNamedCountByTimestep(code, outdirs, plot_type, FUMEheader, plot_path="../.."):
-    sim_indices  = FUMEheader.sim_indices
-    data_indices = FUMEheader.data_indices
-    loc_names    = FUMEheader.loc_names
-    y_label      = FUMEheader.y_label.replace('#', 'Number')
-    combine_pdf  = FUMEheader.combine_plots_pdf
+    loc_names    = header.loc_names
+    sim_idx      = header.sim_indices
+    data_idx     = header.data_indices
+    y_label      = header.y_label.replace("#", "Number")
+    combine_pdf  = header.combine_plots_pdf
 
-    plotfolder = Path(plot_path) / "EnsemblePlots" / f"{code}Plots"
-    plotfolder.mkdir(parents=True, exist_ok=True)
+    plotdir = Path(root) / "EnsemblePlots" / f"{code}Plots"
+    plotdir.mkdir(parents=True, exist_ok=True)
 
-    # ----------------------------
-    # helper to build dfFull once
-    # ----------------------------
-    def _build_dfFull():
-        return [EnsembleData(outdirs, si)[0] for si in sim_indices]
+    def _assemble_full():
+        return [EnsembleData(outdirs, sidx)[0] for sidx in sim_idx]
 
-    pdf_ctx = PdfPages(plotfolder / "combined_time_plots.pdf") if combine_pdf else nullcontext()
+    pdf_ctx = PdfPages(plotdir / "combined_time_plots.pdf") if combine_pdf else nullcontext()
 
+    # ─── LOCATION‑based time‑series & GIFs ────────────────────────────
     with pdf_ctx as pdf:
-        fi = 0  # figure index
-        for i, (sim_i, data_i) in enumerate(zip(sim_indices, data_indices)):
-            # load the ensemble once for this column
-            dfTest, ensembleSize, outdf = EnsembleData(outdirs, sim_i)
+        fi = 0
+        for i, (sidx, didx) in enumerate(zip(sim_idx, data_idx)):
+            df, ens_size, outdf = EnsembleData(outdirs, sidx)
 
-            # ---- static plots -----------------------------------------
             if plot_type in ("loc_lines", "all"):
-                plotLocation(dfTest, ensembleSize, outdf,
-                             plot_num=fi, loc_index=i, data_index=data_i,
-                             loc_names=loc_names, y_label=y_label,
-                             save_fig=True, plot_folder=str(plotfolder),
-                             combine_plots_pdf=pdf)
+                plotLocation(df, ens_size, outdf, fi, i, didx,
+                             loc_names, y_label, True, str(plotdir), pdf)
                 fi += 1
 
             if plot_type in ("loc_stdev", "all"):
-                plotLocationSTDBound(dfTest, ensembleSize, outdf,
-                                     plot_num=fi, loc_index=i, data_index=data_i,
-                                     loc_names=loc_names, y_label=y_label,
-                                     save_fig=True, plot_folder=str(plotfolder),
-                                     combine_plots_pdf=pdf)
+                plotLocationSTDBound(df, ens_size, outdf, fi, i, didx,
+                                     loc_names, y_label, True, str(plotdir), pdf)
                 fi += 1
 
-            if data_i >= 0 and plot_type in ("loc_diff", "all"):
-                plotLocationDifferences(outdirs, fi, i, sim_i, data_i, loc_names,
-                                         save_fig=True, plot_folder=str(plotfolder),
-                                         combine_plots_pdf=pdf)
+            if didx >= 0 and plot_type in ("loc_diff", "all"):
+                plotLocationDifferences(outdirs, fi, i, sidx, didx, loc_names,
+                                         True, str(plotdir), pdf)
                 fi += 1
 
-            # ---- animated histogram ----------------------------------
             if plot_type in ("loc_hist_gif", "all"):
-                animateLocationHistogram(dfTest, ensembleSize, outdf,
-                                         plot_num=fi, loc_index=i,
-                                         data_index=data_i, loc_names=loc_names,
-                                         x_label=y_label, save_fig=True,
-                                         plot_folder=str(plotfolder))
+                animateLocationHistogram(df, ens_size, outdf, fi, i, didx,
+                                         loc_names, y_label, True, str(plotdir))
                 fi += 1
 
-            # ---- animated violins (needs all categories) -------------
-            if plot_type in ("loc_violin_gif", "all") and i == 0:  # only once
-                dfFull = _build_dfFull()
-                animateLocationViolins(dfFull, ensembleSize, outdf,
-                                        plot_num=fi, loc_index=0,
-                                        sim_indices=sim_indices,
-                                        data_indices=data_indices,
-                                        loc_names=loc_names,
-                                        y_label=y_label, save_fig=True,
-                                        plot_folder=str(plotfolder))
+            if plot_type in ("loc_violin_gif", "all") and i == 0:
+                animateLocationViolins(_assemble_full(), ens_size, outdf, fi, 0,
+                                       sim_idx, data_idx, loc_names, y_label,
+                                       True, str(plotdir))
 
-            # ---- final bar chart -------------------------------------
             if plot_type in ("bar_chart", "all") and i == 0:
-                plotFinalOblastBarHTML(outdirs, plot_folder=str(plotfolder))
+                plot_final_oblast_bar(outdirs, plotdir)
 
     if not combine_pdf:
         plt.show()
 
-# ---------------------------------------------------------------------------
-# 3.  CLI entry point
-# ---------------------------------------------------------------------------
+    # ─── GROUP‑level helpers (separate modules) ───────────────────────
+    if plot_type in ("source_hist", "all"):
+        plotSourceHist(outdirs, filters=[], save_fig=True,
+                       plot_folder=str(plotdir), combine_pdf=True)
+
+    if plot_type in ("single_sankey", "all"):
+        plotMigrationSankey(outdirs, save_fig=True, plot_folder=str(plotdir))
+
+    if plot_type in ("stacked_bar", "all"):
+        for col in ("gender", "age", "education", "property_in_ukraine"):
+            plotStackedBar(outdirs, disaggregator=col,
+                           filters=[], save_fig=True,
+                           plot_folder=str(plotdir))
+
+    if plot_type in ("line_chart", "all"):
+        for col in ("gender", "age_binned", "education", "property_in_ukraine"):
+            plotLineOverTime(outdirs,
+                             primary_filter_column="source",
+                             primary_filter_value=None,
+                             line_disaggregator=col,
+                             filters=[], save_fig=True,
+                             plot_folder=str(plotdir))
+
+
+# ---------------------------------------------------------------------
+# CLI entry‑point
+# ---------------------------------------------------------------------
 if __name__ == "__main__":
     code      = sys.argv[1] if len(sys.argv) > 1 else "homecoming"
     plot_type = sys.argv[2] if len(sys.argv) > 2 else "all"
+
     outdir    = f"../sample_{code}_output"
     outdirs   = ReadHeaders.GetOutDirs(outdir)
-    FUMEheader= ReadHeaders.ReadOutHeaders(outdirs, mode=code)
-    plotNamedCountByTimestep(code, outdirs, plot_type, FUMEheader)
-    print(f"Plots saved to {Path(outdir) / 'EnsemblePlots' / f'{code}Plots'}")
-   
+    header    = ReadHeaders.ReadOutHeaders(outdirs, mode=code)
+
+    plotNamedCountByTimestep(code, outdirs, plot_type, header)
+    print(f"[DONE] Plots saved in {Path(outdir) / 'EnsemblePlots' / f'{code}Plots'}")
