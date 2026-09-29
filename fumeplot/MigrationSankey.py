@@ -37,7 +37,7 @@ def plotMigrationSankey(outdirs, *, save_fig=True, plot_folder="plots"):
     fig.update_layout(title_text="Mean Migration Sankey", font_size=10)
 
     Path(plot_folder).mkdir(parents=True, exist_ok=True)
-    fig.write_html(Path(plot_folder) / "migration_sankey_mean.html")
+    fig.write_html(Path(plot_folder) / "migration_sankey_mean.html", include_plotlyjs="inline")
     if save_fig:
         try:
             fig.write_image(Path(plot_folder) / "migration_sankey_mean.png")

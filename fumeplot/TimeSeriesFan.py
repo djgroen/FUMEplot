@@ -179,4 +179,4 @@ def plotLineOverTime(outdirs, *, primary_filter_column="source",
     Path(plot_folder).mkdir(parents=True, exist_ok=True)
     fig.write_html(Path(plot_folder) /
                    f"fan_{primary_filter_column}_{primary_filter_value}_"
-                   f"{line_disaggregator}.html")
+                   f"{line_disaggregator}.html", include_plotlyjs="inline")
