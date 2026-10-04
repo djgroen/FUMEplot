@@ -13,7 +13,9 @@ from dateutil.relativedelta import relativedelta
 # ────────── project helpers (data I/O only) ──────────
 import ReadHeaders                                  # ← keep: loads ensemble meta
 from TimeSeriesPlots  import EnsembleData           # ← matrix builder only
-
+from SourceHisto import plotSourceHist
+from MigrationSankey import plotMigrationSankey
+from TimeSeriesFan import plotLineOverTime
 
 # (latexplotlib config left in case you need it later)
 import latexplotlib as lpl
@@ -25,24 +27,6 @@ lpl.size.set(347.12354, 549.138)
 def _format_labels(labels):
     """Title‑case + replace underscores → spaces."""
     return [lbl.replace("_", " ").title() for lbl in labels]
-
-
-# ──────────────────────────── *STUB* plots ────────────────────────────
-# Replace each of these with your real implementation when ready.
-# Until then they do nothing and will not raise.
-# ---------------------------------------------------------------------
-
-def plotSourceHist(*args, **kwargs) -> None:
-    """Box‑and‑whisker of source counts – placeholder."""
-    pass
-
-def plotMigrationSankey(*args, **kwargs) -> None:
-    """Mean origin→destination Sankey – placeholder."""
-    pass
-
-def plotLineOverTime(*args, **kwargs) -> None:
-    """Fan/line plot over time – placeholder."""
-    pass
 
 
 # ─────────────────────── high‑level orchestrator ──────────────────────
