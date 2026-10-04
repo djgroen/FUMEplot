@@ -59,7 +59,7 @@ def read_brown3d_file(filepath):
 
 
 if __name__ == "__main__":
-    files = glob.glob("/home/kartik/rw-testing/Brown3D-*.txt")
+    files = glob.glob("Brown3D-*.txt")
     for filepath in sorted(files):
         data = read_brown3d_file(filepath)
         print(filepath, "->", len(data["particles"]), "particles, timestep", data["timestep"])
