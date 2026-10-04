@@ -39,12 +39,12 @@ def read_xyz_file(filepath: str) -> dict:
 
 
 if __name__ == "__main__":
-    files = glob.glob("/home/kartik/rw-testing/RW1D-*.txt")
+    files = glob.glob("RW1D-*.txt")
     for filepath in files:
         data = read_xyz_file(filepath)
         print(filepath, "->", len(data["particles"]), "particles")
 
-    files2d = glob.glob("/home/kartik/rw-testing/RW2D-*.txt")
+    files2d = glob.glob("RW2D-*.txt")
     for filepath in files2d:
         data = read_xyz_file(filepath)
         print(filepath, "->", len(data["particles"]), "particles")
