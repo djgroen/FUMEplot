@@ -19,6 +19,14 @@ def read_brown3d_file(filepath):
         header = f.readline()
         assert header.startswith("ITEM: ATOMS"), f"Unexpected header, expected ITEM: ATOMS, got: {header!r}"
 
+        column_names = header.split()[2:]  # drop "ITEM:" and "ATOMS"
+        column_index = {name: i for i, name in enumerate(column_names)}
+
+        required_columns = ["id", "x", "y", "z", "vx", "vy", "vz"]
+        missing = [c for c in required_columns if c not in column_index]
+        if missing:
+            raise ValueError(f"{filepath}: ITEM: ATOMS header is missing required column(s) {missing}: {header!r}")
+
         # Assumes exactly one timestep block per file, which holds for every
         # file these simulation scripts produce (a new file is opened each
         # output step). A general multi-frame LAMMPS dump file would need a
@@ -34,13 +42,13 @@ def read_brown3d_file(filepath):
 
             values = line.split()
 
-            particle_id = int(values[0])
-            x = float(values[2])
-            y = float(values[3])
-            z = float(values[4])
-            vx = float(values[5])
-            vy = float(values[6])
-            vz = float(values[7])
+            particle_id = int(values[column_index["id"]])
+            x = float(values[column_index["x"]])
+            y = float(values[column_index["y"]])
+            z = float(values[column_index["z"]])
+            vx = float(values[column_index["vx"]])
+            vy = float(values[column_index["vy"]])
+            vz = float(values[column_index["vz"]])
 
             particles.append(
                 (particle_id, x, y, z, vx, vy, vz)
