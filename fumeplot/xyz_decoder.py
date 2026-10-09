@@ -7,13 +7,18 @@ def read_xyz_file(filepath: str) -> dict:
     Returns a dict with a single "particles" key, holding a list of
     (particle_id, x, y, z) tuples. No timestep or box metadata is
     returned, since the XYZ format doesn't contain either.
+
+    Note: real/standard XYZ allows any free-text comment on line 2
+    (not necessarily blank) and element-symbol-first rows ("C x y z").
+    This parser matches what this project's generator actually writes:
+    a blank line 2 and particle-ID-first rows ("1 x y z"). Line 2 is
+    now accepted and discarded as a comment rather than required to
+    be blank; rows are still assumed ID-first.
     """
     with open(filepath) as f:
         particle_count = int(f.readline())
 
-        blank = f.readline()
-        if blank.strip() != "":
-            raise ValueError(f"{filepath}: expected a blank line after the particle count, got: {blank!r}")
+        f.readline()  # comment line - discarded, not required to be blank
 
         particles = []
 
