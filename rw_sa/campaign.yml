@@ -1,0 +1,118 @@
+# EasyVVUQ campaign config for the rw_sa Sobol sensitivity analysis.
+#
+# n_mc_samples is QMCSampler's own argument name (confirmed from
+# sampling/qmc.py source) - EasyVVUQ's real total run count works out to
+# n_mc_samples * (len(vary) + 2), the standard Saltelli sample-count
+# formula, since QMCSampler builds its design via SALib.sample.sobol
+# under the hood.
+#
+# qoi_cols lists ONLY scalar QoI columns for this first version - each
+# decoder's parse_sim_output() also returns vector/profile columns
+# (spread_profile, centroid_displacement_profile, steps, ...) which are
+# useful for diagnostic plotting but are deliberately left OUT of
+# qoi_cols here, since vector-QoI Sobol handling in EasyVVUQ needs
+# separate verification not yet done.
+
+brownian:
+  # FULLY SETTLED 16 Nov - Alireza confirmed in #fumeplot: fluidDrag
+  # [0.01,0.03], numSteps=16000, and advection is ONE varied parameter -
+  # "Just Y, keep X and Z at 0. That keeps advection as one parameter and
+  # the clean split: Y-drift drives centroid displacement, spread stays
+  # isotropic from fluidDrag." advection_x/advection_z are therefore NOT
+  # sampled - flowVelocityX/flowVelocityZ are fixed at 0 in fixed_params
+  # below (using the script's own global names directly, not the
+  # sampler-facing advection_x/z names, since fixed_params bypasses the
+  # encoder's translation layer entirely - see encoder.py). No code
+  # changes needed in encoder.py/run_campaign.py for this: the encoder
+  # only translates whatever keys the sampler actually hands it, and
+  # build_params_spec() only builds a spec for cfg["vary"]'s keys, so
+  # dropping advection_x/z from vary: here is sufficient on its own.
+  vary:
+    advection_y:
+      dist: uniform
+      min: 0.5
+      max: 1.5
+      default: 1.0
+    fluidDrag:
+      dist: uniform
+      min: 0.01
+      max: 0.03
+      default: 0.02
+  n_mc_samples: 64
+  fixed_params:
+    numParticles: 100
+    massRange: 1       # settled: Alireza confirmed massRange=1 (mass=1 fixed, no mass column)
+    numTrials: 5
+    numSteps: 16000    # settled 16 Nov
+    outputRate: 400
+    fileBase: "Brown3D-SA"
+    flowVelocityX: 0   # fixed at 0, not sampled - settled 16 Nov
+    flowVelocityZ: 0   # fixed at 0, not sampled - settled 16 Nov
+  decoder_kwargs:
+    masses: 1.0        # matches massRange=1
+  qoi_cols:
+    - spread_final
+    - centroid_displacement_final
+    - kinetic_energy_final
+    - spread_scaling_exponent
+
+randomwalk1d:
+  # Onboarding/decoder case per Alireza - simpler two-param sweep.
+  # Bounds below are placeholders mirroring the script's own hardcoded
+  # defaults (flowVelocity=0, diffSpread=2) centered with modest spread;
+  # not yet discussed with the team as settled campaign bounds.
+  vary:
+    advection_x:
+      dist: uniform
+      min: -1.0
+      max: 1.0
+      default: 0.0
+    diffusivity:
+      dist: uniform
+      min: 0.5
+      max: 4.0
+      default: 2.0
+  n_mc_samples: 64
+  fixed_params:
+    numParticles: 500
+    numTrials: 3
+    numSteps: 100
+    outputRate: 10
+    fileBase: "RW1D-SA"
+  decoder_kwargs:
+    dim: 1
+  qoi_cols:
+    - spread_final
+    - centroid_displacement_final
+    - diffusion_coefficient_D
+
+randomwalk2d:
+  vary:
+    advection_x:
+      dist: uniform
+      min: -1.0
+      max: 1.0
+      default: 0.0
+    advection_y:
+      dist: uniform
+      min: -1.0
+      max: 1.0
+      default: 1.0
+    diffusivity:
+      dist: uniform
+      min: 0.3
+      max: 2.0
+      default: 1.0
+  n_mc_samples: 64
+  fixed_params:
+    numParticles: 100
+    numTrials: 3
+    numSteps: 100
+    outputRate: 10
+    fileBase: "RW2D-SA"
+  decoder_kwargs:
+    dim: 2
+  qoi_cols:
+    - spread_final
+    - centroid_displacement_final
+    - diffusion_coefficient_D
