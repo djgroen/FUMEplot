@@ -18,6 +18,17 @@ class RandomWalkDecoder:
         self.file_base = file_base
         self.dim = dim
         self.num_trials = num_trials
+        # Required unconditionally by easyvvuq's real Decode.start()
+        # (confirmed from actions/execute_local.py: 'previous["decoder_filename"]
+        # = self.decoder.target_filename', NOT wrapped in a try/except the
+        # way Encode.start() wraps encoder.target_filename). We don't read a
+        # single named output file - assemble_multi_trial_positions() globs
+        # many per-trial/per-step files - so this is a descriptive glob
+        # pattern, not an exact path. It's only ever written to
+        # previous['decoder_filename'], which nothing in the ExecuteLocal
+        # path reads back (only ExecuteKubernetes does, which this project
+        # doesn't use), so a descriptive placeholder is safe here.
+        self.target_filename = f"{file_base}-T*-S*.txt"
         self.output_columns = [
             "spread_final",
             "centroid_displacement_final",
@@ -53,6 +64,9 @@ class BrownianDecoder:
         self.file_base = file_base
         self.num_trials = num_trials
         self.masses = masses
+        # See RandomWalkDecoder.__init__ for why this is required and why
+        # a descriptive glob pattern (not a real single file) is safe here.
+        self.target_filename = f"{file_base}-T*-S*.txt"
         self.output_columns = [
             "spread_final",
             "centroid_displacement_final",
