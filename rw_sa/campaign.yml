@@ -27,6 +27,15 @@ brownian:
   # only translates whatever keys the sampler actually hands it, and
   # build_params_spec() only builds a spec for cfg["vary"]'s keys, so
   # dropping advection_x/z from vary: here is sufficient on its own.
+  #
+  # UPDATED 26 Nov - Alireza reviewed the real Sobol results and asked to
+  # drop spread_scaling_exponent from qoi_cols: it's meant to sit near
+  # 0.5 on every run as a regime check, so its near-zero run-to-run
+  # variance is exactly why its Sobol indices blew past [0,1] (not a
+  # pipeline bug). decoders.py still computes it (useful as a standalone
+  # convergence diagnostic), it's just no longer passed to analyse() /
+  # reported as a Sobol QoI - removed from qoi_cols below, no other
+  # change needed.
   vary:
     advection_y:
       dist: uniform
@@ -54,24 +63,27 @@ brownian:
     - spread_final
     - centroid_displacement_final
     - kinetic_energy_final
-    - spread_scaling_exponent
 
 randomwalk1d:
-  # Onboarding/decoder case per Alireza - simpler two-param sweep.
-  # Bounds below are placeholders mirroring the script's own hardcoded
-  # defaults (flowVelocity=0, diffSpread=2) centered with modest spread;
-  # not yet discussed with the team as settled campaign bounds.
+  # SETTLED 26 Nov - Alireza confirmed in #fumeplot: RW1D/RW2D are the
+  # decoder/onboarding exercise, not a real Sobol case (Brown3D covers
+  # the random-walk sensitivity story), so they just need a small
+  # ensemble that exercises the xyz decoder rather than a meaningful
+  # sweep. Since campaign.yml keeps them for structural uniformity with
+  # brownian, bounds mirror Brown3D's settled range exactly per his
+  # suggestion: advection [0.5,1.5], diffusivity [0.5,1.5]. Defaults set
+  # to 1.0 (range midpoint), matching Brown3D's own convention.
   vary:
     advection_x:
       dist: uniform
-      min: -1.0
-      max: 1.0
-      default: 0.0
+      min: 0.5
+      max: 1.5
+      default: 1.0
     diffusivity:
       dist: uniform
       min: 0.5
-      max: 4.0
-      default: 2.0
+      max: 1.5
+      default: 1.0
   n_mc_samples: 64
   fixed_params:
     numParticles: 500
@@ -87,21 +99,22 @@ randomwalk1d:
     - diffusion_coefficient_D
 
 randomwalk2d:
+  # SETTLED 26 Nov - same reasoning and bounds as randomwalk1d above.
   vary:
     advection_x:
       dist: uniform
-      min: -1.0
-      max: 1.0
-      default: 0.0
+      min: 0.5
+      max: 1.5
+      default: 1.0
     advection_y:
       dist: uniform
-      min: -1.0
-      max: 1.0
+      min: 0.5
+      max: 1.5
       default: 1.0
     diffusivity:
       dist: uniform
-      min: 0.3
-      max: 2.0
+      min: 0.5
+      max: 1.5
       default: 1.0
   n_mc_samples: 64
   fixed_params:
