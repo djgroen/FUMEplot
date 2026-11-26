@@ -28,7 +28,7 @@ brownian:
   # build_params_spec() only builds a spec for cfg["vary"]'s keys, so
   # dropping advection_x/z from vary: here is sufficient on its own.
   #
-  # UPDATED 26 Nov - Alireza reviewed the real Sobol results and asked to
+  # UPDATED 16 Nov - Alireza reviewed the real Sobol results and asked to
   # drop spread_scaling_exponent from qoi_cols: it's meant to sit near
   # 0.5 on every run as a regime check, so its near-zero run-to-run
   # variance is exactly why its Sobol indices blew past [0,1] (not a
@@ -65,7 +65,7 @@ brownian:
     - kinetic_energy_final
 
 randomwalk1d:
-  # SETTLED 26 Nov - Alireza confirmed in #fumeplot: RW1D/RW2D are the
+  # SETTLED 16 Nov - Alireza confirmed in #fumeplot: RW1D/RW2D are the
   # decoder/onboarding exercise, not a real Sobol case (Brown3D covers
   # the random-walk sensitivity story), so they just need a small
   # ensemble that exercises the xyz decoder rather than a meaningful
@@ -99,7 +99,7 @@ randomwalk1d:
     - diffusion_coefficient_D
 
 randomwalk2d:
-  # SETTLED 26 Nov - same reasoning and bounds as randomwalk1d above.
+  # SETTLED 16 Nov - same reasoning and bounds as randomwalk1d above.
   vary:
     advection_x:
       dist: uniform
