@@ -1,0 +1,13 @@
+{
+    "x1":    $x1,
+    "x2":    $x2,
+    "x3":    $x3,
+    "a":     $a,
+    "b":     $b,
+    "a_min": $a_min,
+    "a_max": $a_max,
+    "n_a":   $n_a,
+    "b_min": $b_min,
+    "b_max": $b_max,
+    "n_b":   $n_b
+}

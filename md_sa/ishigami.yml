@@ -1,0 +1,124 @@
+# Verification campaign: Ishigami function with analytic Sobol indices.
+#
+# Same structure as campaign.yml, so run_campaign.py runs it as a single
+# campaign; run_convergence.py additionally loops over `methods` and their
+# refinement levels and measures the error against the analytic values.
+
+campaign:
+  name: ishigami_sa
+  work_dir: campaigns_ishigami
+
+application:
+  encoder: generic
+  app_dir: ishigami_app
+  template: ishigami_app/ishigami_input.template
+  input_file: input.json
+  output_file: output.json
+  runner: "{python} {app_dir}/ishigami.py {input} {output}"
+
+parameters:
+  x1:    {type: float,   default: 0.0}
+  x2:    {type: float,   default: 0.0}
+  x3:    {type: float,   default: 0.0}
+  a:     {type: float,   default: 7.0}     # nominal Ishigami constants (0D QoI)
+  b:     {type: float,   default: 0.1}
+  a_min: {type: float,   default: 0.0}     # grid of a for y_a and y_ab
+  a_max: {type: float,   default: 10.0}
+  n_a:   {type: integer, default: 11}
+  b_min: {type: float,   default: 0.0}     # grid of b for y_ab
+  b_max: {type: float,   default: 0.3}
+  n_b:   {type: integer, default: 7}
+
+uncertain:
+  x1: {dist: Uniform, args: [-3.141592653589793, 3.141592653589793]}
+  x2: {dist: Uniform, args: [-3.141592653589793, 3.141592653589793]}
+  x3: {dist: Uniform, args: [-3.141592653589793, 3.141592653589793]}
+
+# used by run_campaign.py for a single campaign
+sampler:
+  type: PCESampler
+  kwargs: {polynomial_order: 8, rule: G}
+  analysis_kwargs: {OutputDistributions: false, CorrelationMatrices: false}
+
+qois:
+  scalar:  [y]
+  profile: [y_a]
+  field:   [y_ab]
+
+labels:
+  x1: '$x_1$'
+  x2: '$x_2$'
+  x3: '$x_3$'
+  y: 'Ishigami $Y$ ($a=7$, $b=0.1$)'
+  y_a: 'Ishigami $Y(a)$ ($b=0.1$)'
+  y_ab: 'Ishigami $Y(a, b)$'
+  a: 'Constant $a$'
+  b: 'Constant $b$'
+
+# Methods compared by run_convergence.py (the slot for the methods table).
+# Levels are sized for a local run of a few minutes in total; extend them for
+# HPC runs (PCE analysis cost grows steeply: ~30 s at order 8, ~5 min at 12).
+# Each refines one sampler argument over `levels`; `kwargs` are held fixed.
+# `properties` are declarative and go to the summary table next to the
+# measured quantities.
+methods:
+  - name: PCE-Gauss
+    verify: {max_error: 0.1}       # test: worst Sobol error of QoI y at the finest level
+    sampler: PCESampler
+    kwargs: {rule: G}
+    refine: polynomial_order
+    levels: [1, 2, 3, 4, 5, 6]
+    analysis_kwargs: {OutputDistributions: false, CorrelationMatrices: false}
+    properties:
+      design: full tensor Gauss-Legendre quadrature, (p+1)^d runs
+      extendable: refine p; exponential convergence for smooth responses
+      surrogate: yes (polynomial expansion)
+
+  - name: SC-Gauss
+    verify: {max_error: 0.1}       # test: worst Sobol error of QoI y at the finest level
+    sampler: SCSampler
+    kwargs: {quadrature_rule: G}
+    refine: polynomial_order
+    levels: [1, 2, 3, 4, 5, 6]
+    properties:
+      design: full tensor Gauss-Legendre collocation, (p+1)^d runs
+      extendable: refine p; dimension-adaptive variant available
+      surrogate: yes (Lagrange interpolant)
+
+  - name: SC-sparse-CC
+    verify: {}                     # not converged within the local budget (misses x1*x3^4 below level 5)
+    sampler: SCSampler
+    kwargs: {quadrature_rule: C, sparse: true, growth: true}
+    refine: polynomial_order
+    levels: [2, 3, 4]             # level 1 is a single point; analysis ~50 s at 5
+    properties:
+      design: Smolyak sparse grid, nested Clenshaw-Curtis
+      extendable: refine level; scales to more inputs than full tensor
+      surrogate: yes (sparse interpolant)
+
+  - name: QMC-Saltelli
+    verify: {max_error: 0.1}       # test: worst Sobol error of QoI y at the finest level
+    sampler: QMCSampler
+    kwargs: {}
+    refine: n_mc_samples
+    levels: [16, 32, 64, 128, 256, 512]
+    seed: 2024                     # scrambled Sobol sequence: seed per replicate for reproducibility
+    replicates: 3                  # randomised design -> median and range of the error
+    properties:
+      design: Saltelli estimator on a Sobol sequence, N(d+2) runs
+      extendable: add samples; rate independent of the number of inputs
+      surrogate: no
+
+# Reuse of runs between levels ("new runs") and the computable statistics are
+# measured by run_convergence.py, not declared here.
+convergence:
+  # reference for the errors: 'analytic' (verification case) or 'finest'
+  # (finest level of `method`, for models without a closed-form solution)
+  reference:
+    type: analytic
+    module: ishigami_app/ishigami_analytic.py
+    writer: WriteAnalyticSobols
+    kwargs: {a: 7.0, b: 0.1}
+  tolerances: [0.1, 0.01, 0.001]   # report runs needed to reach these max abs. Sobol-index errors
+  reference_run_cost_s: 13.4       # one MD run (md_app, 256 atoms, 3000 steps) for cost projection
+  n_workers: 16
