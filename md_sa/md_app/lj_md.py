@@ -40,6 +40,21 @@ t=0 on unwrapped coordinates:
 removed per frame, so the imposed drift does not enter the diffusion estimate.
 
 Coordinates of 1D/2D QoIs are written under `axes`, in array-axis order.
+
+Optional LAMMPS dump output (off unless dump_every > 0): every `dump_every`
+steps a single-frame LAMMPS text dump `<dump_base>-T<dump_trial>-S<step>.txt`
+is written to the working directory,
+
+    ITEM: TIMESTEP / NUMBER OF ATOMS / BOX BOUNDS pp pp pp / ATOMS id type x y z vx vy vz
+
+i.e. the layout read by fumeplot/brown3d_decoder.py, so fumeplot.decoders.
+BrownianDecoder(file_base=dump_base, num_trials=1) applies unchanged.
+`dump_group` is 'cloud' (the pulled atoms; the decoder's spread then equals
+cloud_spread_t) or 'all'. Two conventions follow that decoder rather than
+plain LAMMPS: x y z are UNWRAPPED (LAMMPS would call them xu yu zu), and the
+origin is the dumped group's centroid at t = 0 (box bounds shifted to match),
+because the decoder measures centroid displacement from the origin. Step 0 is
+not dumped (the decoder fits log(spread) vs log(step)).
 """
 
 import sys
@@ -83,6 +98,16 @@ def meanSquaredDisplacement(frames):
     return msd
 
 
+def writeLammpsDump(path, step, ids, x, v, lo, hi):
+    """Single-frame LAMMPS text dump (atom style, one atom type, unit masses)."""
+    with open(path, 'w') as f:
+        f.write(f"ITEM: TIMESTEP\n{step}\nITEM: NUMBER OF ATOMS\n{len(ids)}\nITEM: BOX BOUNDS pp pp pp\n")
+        for a, b in zip(lo, hi):
+            f.write(f"{a:.10g} {b:.10g}\n")
+        f.write("ITEM: ATOMS id type x y z vx vy vz\n")
+        np.savetxt(f, np.column_stack([ids, np.ones(len(ids)), x, v]), fmt=['%d', '%d'] + ['%.10g'] * 6)
+
+
 def runMD(p):
     rng = np.random.default_rng(int(p['seed']))
     T, rho, r_cut, gamma, dt = (float(p[k]) for k in ('temperature', 'density', 'r_cut', 'gamma', 'dt'))
@@ -107,6 +132,19 @@ def runMD(p):
     if n_pull:
         f_pull[cloud, 0] = pull_force / n_pull
     centroid0 = x[cloud].mean(axis=0) if n_pull else np.zeros(3)
+
+    dump_every = int(p.get('dump_every', 0))
+    dump_group = str(p.get('dump_group', 'cloud'))
+    dump_base = str(p.get('dump_base', 'LJ'))
+    dump_trial = int(p.get('dump_trial', 1))
+    if dump_every:
+        if dump_group == 'cloud' and not n_pull:
+            raise ValueError("dump_group='cloud' needs n_pull > 0; use dump_group='all'")
+        if dump_group not in ('cloud', 'all'):
+            raise ValueError(f"dump_group={dump_group!r}: expected 'cloud' or 'all'")
+        dump_idx = np.sort(cloud) if dump_group == 'cloud' else np.arange(N)
+        dump_origin = x[dump_idx].mean(axis=0)
+        dump_lo, dump_hi = -dump_origin, box - dump_origin
 
     forces, epot, virial, r2 = pairTerms(x, box, r_cut)
     forces += f_pull
@@ -133,6 +171,10 @@ def runMD(p):
         forces, epot, virial, r2 = pairTerms(x, box, r_cut)
         forces += f_pull
         v += 0.5 * dt * forces
+
+        if dump_every and step % dump_every == 0:
+            writeLammpsDump(f"{dump_base}-T{dump_trial}-S{step}.txt", step, dump_idx + 1,
+                            x[dump_idx] - dump_origin, v[dump_idx], dump_lo, dump_hi)
 
         if step % every:
             continue
@@ -190,7 +232,10 @@ def runMD(p):
             'rdf': {'r': r_mid.tolist()},
             'rdf_t': {'t': t_mid.tolist(), 'r': r_mid.tolist()},
         },
-        'meta': {'n_atoms': N, 'box': box, 'n_pull': n_pull},
+        'meta': {'n_atoms': N, 'box': box, 'n_pull': n_pull,
+                 'lammps_dump': ({'pattern': f"{dump_base}-T{dump_trial}-S*.txt", 'every': dump_every,
+                                  'group': dump_group, 'coords': 'unwrapped',
+                                  'origin': dump_origin.tolist()} if dump_every else None)},
     }
 
 
