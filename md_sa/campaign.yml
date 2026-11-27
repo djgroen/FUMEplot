@@ -34,6 +34,13 @@ parameters:
   n_pull:       {type: integer, default: 32}     # atoms in the pulled cloud
   pull_force:   {type: float,   default: 64.0}   # total force on the cloud centroid (+x), 2 per atom
   seed:         {type: integer, default: 42}     # fixed: common random numbers
+  # Optional LAMMPS dump output (md_app/lj_md.py docstring), readable by
+  # fumeplot/decoders.BrownianDecoder(file_base=dump_base, num_trials=1).
+  # 0 = off. Enable with e.g.  --set dump_every=100  (30 files per run with dump_group=cloud).
+  dump_every:   {type: integer, default: 0}
+  dump_group:   {type: string,  default: cloud}  # cloud (n_pull atoms) | all
+  dump_base:    {type: string,  default: LJ}     # files <dump_base>-T<dump_trial>-S<step>.txt
+  dump_trial:   {type: integer, default: 1}
 
 # Uncertain inputs: chaospy distribution name and its positional arguments.
 uncertain:
