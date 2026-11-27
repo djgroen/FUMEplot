@@ -14,6 +14,10 @@ Representations:
               unity mapped directly onto colour. With --weight std, pixels fade
               to the surface where the output spread is small.
   slices      1D partitions of unity along axis 1 at a few axis-0 positions.
+  stats       ensemble mean and std of the field, with colourbars.
+
+The dominant and std-faded maps carry a 2D colour key (component x share, or
+component x std in QoI units) drawn with exactly the colours of the map.
 
 Zero-variance pixels (indices undefined) are drawn in a neutral grey.
 
@@ -30,7 +34,8 @@ from matplotlib.backends.backend_pdf import PdfPages
 
 from PlotSobolProfile import stackPartition
 from SobolPartition import (LoadSobolSet, Partition, PlotFolder, SaveFigure, ComponentLegendHandles,
-                            MixColours, FadeToSurface, SEQUENTIAL_BLUE, INK_SECONDARY, MASK_COLOUR)
+                            MixColours, FadeToSurface, DrawColourKey, SEQUENTIAL_BLUE, INK_SECONDARY,
+                            MASK_COLOUR)
 import matplotlib.colors as mcolors
 
 
@@ -85,17 +90,25 @@ def plotDominantMap(sset, qoi, plot_folder, combine_plots_pdf=None):
     base = np.array([mcolors.to_rgb(c.colour) for c in comps])[winner]
     # share 1/K (no winner) -> surface, share 1 -> full colour
     k = len(comps)
-    strength = (share - 1.0 / k) / (1.0 - 1.0 / k)
 
-    fig, ax = plt.subplots(figsize=(7.5, 4.2))
-    _rgbImage(ax, x, y, FadeToSurface(base, 0.25 + 0.75 * strength), mask)
+    def fade(rgb, s):
+        return FadeToSurface(rgb, 0.25 + 0.75 * (s - 1.0 / k) / (1.0 - 1.0 / k))
+
+    fig, (ax, key) = plt.subplots(1, 2, figsize=(10.0, 4.2), gridspec_kw={'width_ratios': [4, 1.25]})
+    _rgbImage(ax, x, y, fade(base, share), mask)
     ax.set_xlabel(sset.label(x_name))
     ax.set_ylabel(sset.label(y_name))
-    present = [comps[i] for i in np.unique(winner[~mask])]
-    ax.legend(handles=ComponentLegendHandles(present), loc='upper left', bbox_to_anchor=(1.01, 1),
-              frameon=False, fontsize='small', title='Largest share', title_fontsize='small')
     ax.set_title(f"{sset.label(qoi.name)}: dominant contribution (paler = smaller share)",
                  fontsize='small', loc='left')
+
+    # key: colour of each possible winner at each share level, as drawn on the map
+    present = [comps[i] for i in np.unique(winner[~mask])]
+    levels = np.linspace(1.0 / k, 1.0, 64)
+    rows = [fade(np.tile(mcolors.to_rgb(c.colour), (len(levels), 1)), levels) for c in present]
+    DrawColourKey(key, present, levels, rows, 'Share of variance of the largest\ncontribution, $S_k$',
+                  title=f'Key (min share = 1/{k})', xfmt=plt.matplotlib.ticker.PercentFormatter(1.0))
+    key.set_xticks([1.0 / k, 0.5, 1.0])
+    fig.tight_layout()
 
     SaveFigure(fig, f"{qoi.name}_Sobol_dominant", plot_folder, combine_plots_pdf)
     plt.close(fig)
@@ -105,20 +118,59 @@ def plotMixedMap(sset, qoi, plot_folder, combine_plots_pdf=None, weight=None):
     x_name, x, y_name, y = _grid(qoi)
     comps, mask = Partition(sset, qoi)
     rgb = MixColours(np.array([c.values for c in comps]), [c.colour for c in comps])
-    suffix = ''
-    if weight == 'std' and qoi.std is not None:
-        rgb = FadeToSurface(rgb, qoi.std / np.nanmax(qoi.std))
-        suffix = ', faded by std'
+    by_std = weight == 'std' and qoi.std is not None
+    suffix = ', faded by std' if by_std else ''
 
-    fig, ax = plt.subplots(figsize=(7.5, 4.2))
-    _rgbImage(ax, x, y, rgb, mask)
+    if not by_std:
+        fig, ax = plt.subplots(figsize=(7.5, 4.2))
+        _rgbImage(ax, x, y, rgb, mask)
+        ax.legend(handles=ComponentLegendHandles(_shown(comps)), loc='upper left', bbox_to_anchor=(1.01, 1),
+                  frameon=False, fontsize='small', title='Pure colours ($S_k$ = 100%)',
+                  title_fontsize='small')
+    else:
+        std_max = np.nanmax(qoi.std)
+        fig, (ax, key) = plt.subplots(1, 2, figsize=(10.0, 4.2), gridspec_kw={'width_ratios': [4, 1.25]})
+        _rgbImage(ax, x, y, FadeToSurface(rgb, qoi.std / std_max), mask)
+        # labelled iso-lines of the output std, in the QoI's own units
+        levels = plt.matplotlib.ticker.MaxNLocator(5).tick_values(0, std_max)[1:-1]
+        cs = ax.contour(x, y, np.where(mask, np.nan, qoi.std), levels=levels, colors=INK_SECONDARY,
+                        linewidths=0.6, alpha=0.8)
+        ax.clabel(cs, fmt='%.3g', fontsize='xx-small', inline=True)
+        # key: pure colour of each component at each std level, as drawn on the map
+        shown = _shown(comps)
+        s = np.linspace(0, std_max, 64)
+        rows = [FadeToSurface(np.tile(mcolors.to_rgb(c.colour), (len(s), 1)), s / std_max) for c in shown]
+        DrawColourKey(key, shown, s, rows, f"Std of {sset.label(qoi.name)}\n(max = {std_max:.3g})",
+                      title='Key (pure colour, $S_k$ = 100%)')
+        fig.tight_layout()
     ax.set_xlabel(sset.label(x_name))
     ax.set_ylabel(sset.label(y_name))
-    ax.legend(handles=ComponentLegendHandles(_shown(comps)), loc='upper left', bbox_to_anchor=(1.01, 1),
-              frameon=False, fontsize='small', title='Pure colours', title_fontsize='small')
     ax.set_title(f"{sset.label(qoi.name)}: colour mixed by Sobol shares{suffix}", fontsize='small', loc='left')
 
     SaveFigure(fig, f"{qoi.name}_Sobol_mixed{'_std' if suffix else ''}", plot_folder, combine_plots_pdf)
+    plt.close(fig)
+
+
+def plotStatsMap(sset, qoi, plot_folder, combine_plots_pdf=None):
+    """Ensemble mean and std of the field, each with its own colourbar (the variance the indices split)."""
+    if qoi.mean is None or qoi.std is None:
+        return
+    x_name, x, y_name, y = _grid(qoi)
+    fig, axes = plt.subplots(1, 2, sharey=True, figsize=(10.0, 3.8))
+    for ax, (values, name) in zip(axes, [(qoi.mean, 'Mean'), (qoi.std, 'Std')]):
+        im = ax.pcolormesh(x, y, values, cmap=SEQUENTIAL_BLUE, shading='nearest')
+        cb = fig.colorbar(im, ax=ax, pad=0.02)
+        cb.set_label(f"{name} of {sset.label(qoi.name)}", fontsize='small')
+        cb.ax.tick_params(labelsize='x-small')
+        ax.set_title(f"({'ab'[name == 'Std']}) Ensemble {name.lower()}  "
+                     f"[range {np.nanmin(values):.3g} – {np.nanmax(values):.3g}]", fontsize='small', loc='left')
+        ax.set_xlabel(sset.label(x_name))
+    axes[0].set_ylabel(sset.label(y_name))
+    fig.suptitle(f"{sset.label(qoi.name)}: ensemble statistics", x=0.02, ha='left')
+    fig.text(0.02, 0.005, sset.describeDesign(), fontsize='x-small', color=INK_SECONDARY)
+    fig.tight_layout(rect=(0, 0.03, 1, 1))
+
+    SaveFigure(fig, f"{qoi.name}_stats", plot_folder, combine_plots_pdf)
     plt.close(fig)
 
 
@@ -153,6 +205,8 @@ def plotSobolField(code, sset, plot_type='all', plot_path='.', qois=None, weight
     plot_folder = PlotFolder(plot_path, code)
     with PdfPages(os.path.join(plot_folder, "combined_sobol_field.pdf")) if combine_plots_pdf else nullcontext() as pdf:
         for qoi in qois:
+            if plot_type in ('stats', 'all'):
+                plotStatsMap(sset, qoi, plot_folder, pdf)
             if plot_type in ('components', 'all'):
                 plotComponentMaps(sset, qoi, plot_folder, pdf)
             if plot_type in ('dominant', 'all'):
@@ -170,7 +224,7 @@ if __name__ == "__main__":
     p = argparse.ArgumentParser(description="Plot Sobol indices of 2D QoIs")
     p.add_argument("sobols_yml")
     p.add_argument("--code", default="md")
-    p.add_argument("--plot_type", default="all", choices=["components", "dominant", "mixed", "slices", "all"])
+    p.add_argument("--plot_type", default="all", choices=["stats", "components", "dominant", "mixed", "slices", "all"])
     p.add_argument("--weight", default=None, choices=[None, "std"], help="fade mixed map by output std")
     p.add_argument("--qois", nargs="*", default=None)
     p.add_argument("--param_order", nargs="*", default=None, help="parameter order (fixes colours)")

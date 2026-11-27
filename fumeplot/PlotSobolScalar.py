@@ -27,10 +27,15 @@ from SobolPartition import (LoadSobolSet, Partition, PlotFolder, SaveFigure, Com
 
 def plotPartitionBars(sset, qois, plot_folder, combine_plots_pdf=None, label_min=0.06):
     """Horizontal 100% stacked bars, one per scalar QoI."""
-    fig, ax = plt.subplots(figsize=(7.5, 0.6 + 0.55 * len(qois)))
+    fig, ax = plt.subplots(figsize=(9.5, 0.6 + 0.55 * len(qois)))
 
     legend_comps = {}
     for row, qoi in enumerate(qois):
+        if qoi.mean is not None and qoi.std is not None:
+            mu, sd = float(qoi.mean), float(qoi.std)
+            cv = f"  CV {abs(sd / mu):.1%}" if mu != 0 else ''
+            ax.text(1.02, row, f"{mu:.4g} $\\pm$ {sd:.3g}{cv}", ha='left', va='center',
+                    fontsize='x-small', color=INK_SECONDARY, clip_on=False)
         comps, mask = Partition(sset, qoi)
         if mask.all():
             ax.text(0.5, row, 'zero variance', ha='center', va='center', color=INK_SECONDARY)
@@ -53,6 +58,9 @@ def plotPartitionBars(sset, qois, plot_folder, combine_plots_pdf=None, label_min
     ax.set_xlim(0, 1)
     ax.xaxis.set_major_formatter(plt.matplotlib.ticker.PercentFormatter(1.0))
     ax.set_xlabel('Share of output variance')
+    if any(q.std is not None for q in qois):
+        ax.text(1.02, -0.6, 'mean $\\pm$ std', ha='left', va='bottom', fontsize='x-small',
+                fontweight='bold', color=INK_SECONDARY, clip_on=False)
     ax.grid(visible=True, axis='x', linestyle='-', linewidth=0.33)
     ax.set_axisbelow(True)
     for s in ('top', 'right', 'left'):

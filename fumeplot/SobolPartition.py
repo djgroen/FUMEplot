@@ -227,6 +227,26 @@ def SaveFigure(fig, name, plot_folder, combine_plots_pdf=None):
     fig.savefig(f"{plot_folder}/{_fileName(name)}.png", bbox_inches='tight', dpi=200)
 
 
+def DrawColourKey(ax, comps, x, rgb_rows, xlabel, title=None, xfmt=None):
+    """
+    2D colour key: one row per component, colours along x exactly as drawn on the map.
+    rgb_rows: (n_comps, len(x), 3). Used where lightness encodes a quantity (share, std).
+    """
+    dx = (x[-1] - x[0]) / max(len(x) - 1, 1)
+    ax.imshow(np.asarray(rgb_rows), aspect='auto', interpolation='nearest', origin='upper',
+              extent=(x[0] - dx / 2, x[-1] + dx / 2, len(comps) - 0.5, -0.5))
+    ax.set_yticks(range(len(comps)), [c.label for c in comps], fontsize='x-small')
+    ax.yaxis.tick_right()
+    ax.tick_params(axis='x', labelsize='x-small')
+    ax.set_xlabel(xlabel, fontsize='x-small')
+    if xfmt is not None:
+        ax.xaxis.set_major_formatter(xfmt)
+    if title:
+        ax.set_title(title, fontsize='x-small', loc='left')
+    for s in ax.spines.values():
+        s.set_visible(False)
+
+
 def ComponentLegendHandles(comps):
     import matplotlib.patches as mpatches
     return [mpatches.Patch(facecolor=c.colour, hatch=c.hatch, edgecolor='white', label=c.label)
