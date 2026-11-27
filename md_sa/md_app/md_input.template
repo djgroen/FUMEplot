@@ -13,5 +13,9 @@
     "r_max":        $r_max,
     "n_pull":       $n_pull,
     "pull_force":   $pull_force,
-    "seed":         $seed
+    "seed":         $seed,
+    "dump_every":   $dump_every,
+    "dump_group":   "$dump_group",
+    "dump_base":    "$dump_base",
+    "dump_trial":   $dump_trial
 }
